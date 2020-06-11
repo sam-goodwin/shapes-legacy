@@ -1,0 +1,8 @@
+{
+  "lerna": "3.22.0",
+  "packages": [
+    "packages/**"
+  ],
+  "rejectCycles": "true",
+  "version": "0.1.0"
+}
