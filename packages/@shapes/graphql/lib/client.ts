@@ -1,69 +1,74 @@
-import { DocumentNode } from 'graphql';
-import { GraphQLAST, GraphQLASTNode, GraphQLInputFields, GraphQLInputType, InputParameter, Type } from './ast';
+import { GraphQLAST, GraphQLNode, InputParameter, RequestTypeNodes, TypeNode } from './ast';
 import { GraphQLSchema } from './schema';
-import { GQL, GqlResult, GqlResultType, Selector } from './selector';
+import { GqlResult, GqlResultType, Selector } from './selector';
 import { Value } from './value';
 
 export function gqlClient<S extends GraphQLSchema>(schema: S): GqlClient<S> {
   throw new Error('todo');
 }
 
-export interface GqlClient<S extends GraphQLSchema> {
-  query<
+export class GqlClient<S extends GraphQLSchema> {
+  public query<
     U extends GqlQueryResult
   >(
-    f: (i: GqlRoot<S['graph'], Extract<S['graph'][S['query']], Type>>) => U
-  ): Promise<GetGqlQueryResult<U>>;
+    f: (i: GqlRoot<S['graph'], Extract<S['graph'][S['query']], TypeNode>>) => U
+  ): Promise<GetGqlQueryResult<U>> {
+    throw new Error(`Not Implemented`);
+  }
 
-  compileQuery<
+  public compileQuery<
     U extends GqlQueryResult
   >(
-    f: (i: GqlRoot<S['graph'], Extract<S['graph'][S['query']], Type>>) => U
+    f: (i: GqlRoot<S['graph'], Extract<S['graph'][S['query']], TypeNode>>) => U
   ): CompiledGqlQuery<never, undefined, GetGqlQueryResult<U>>;
 
-  compileQuery<
+  public compileQuery<
     Name extends string,
     U extends GqlQueryResult
   >(
     queryName: Name,
-    f: (root: GqlRoot<S['graph'], Extract<S['graph'][S['query']], Type>>) => U
+    f: (root: GqlRoot<S['graph'], Extract<S['graph'][S['query']], TypeNode>>) => U
   ): CompiledGqlQuery<Name, undefined, GetGqlQueryResult<U>>;
 
-  compileQuery<
-    Parameters extends GraphQLInputFields,
+  public compileQuery<
+    Parameters extends RequestTypeNodes,
     U extends GqlQueryResult
   >(
     parameters: Parameters,
     f: (parameters: {
       [parameterName in keyof Parameters]: InputParameter<Extract<parameterName, string>, Parameters[parameterName]>
-    }, root: GqlRoot<S['graph'], Extract<S['graph'][S['query']], Type>>) => U
+    }, root: GqlRoot<S['graph'], Extract<S['graph'][S['query']], TypeNode>>) => U
   ): CompiledGqlQuery<never, {
     [parameterName in keyof Parameters]: Value<S['graph'], Parameters[parameterName]>;
   }, GetGqlQueryResult<U>>;
 
-  compileQuery<
+  public compileQuery<
     Name extends string,
-    Parameters extends GraphQLInputFields,
+    Parameters extends RequestTypeNodes,
     U extends GqlQueryResult
   >(
     name: Name,
     parameters: Parameters,
     f: (parameters: {
       [parameterName in keyof Parameters]: InputParameter<Extract<parameterName, string>, Parameters[parameterName]>
-    }, root: GqlRoot<S['graph'], Extract<S['graph'][S['query']], Type>>) => U
+    }, root: GqlRoot<S['graph'], Extract<S['graph'][S['query']], TypeNode>>) => U
   ): CompiledGqlQuery<never, {
     [parameterName in keyof Parameters]: Value<S['graph'], Parameters[parameterName]>;
   }, GetGqlQueryResult<U>>;
 
+  public compileQuery(a: any, b?: any, c?: any): CompiledGqlQuery<string, any, any> {
+    throw new Error(`Not Implemented`);
+  }
+
   mutation: S['mutation'] extends keyof S['graph'] ?
-    <U extends GqlResult>(f: (i: GqlRoot<S['graph'], Extract<S['graph'][S['mutation']], Type>>) => U) => Promise<GqlResultType<U>> :
+    <U extends GqlResult>(f: (i: GqlRoot<S['graph'], Extract<S['graph'][S['mutation']], TypeNode>>) => U) => Promise<GqlResultType<U>> :
     never;
 }
 
-export type GqlRoot<Graph extends GraphQLAST, Root extends Type> = {
+export type GqlRoot<Graph extends GraphQLAST, Root extends TypeNode> = {
   [field in keyof GraphQLAST.GetInheritedFields<Graph, Root['id']>]: Selector<
     Graph,
-    Extract<GraphQLAST.GetInheritedFields<Graph, Root['id']>[field], GraphQLASTNode>,
+    Extract<GraphQLAST.GetInheritedFields<Graph, Root['id']>[field], GraphQLNode>,
     Root['id']
   >
 };

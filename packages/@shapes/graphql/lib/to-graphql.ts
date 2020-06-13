@@ -1,4 +1,4 @@
-import { GraphQLASTNode, GraphQLInputType, GraphQLReturnType } from './ast';
+import { GraphQLNode, RequestTypeNode, ReturnTypeNode } from './ast';
 import { GraphQLSchema } from './schema';
 
 import type { DocumentNode, EnumTypeDefinitionNode, FieldDefinitionNode, ListTypeNode, NamedTypeNode, NameNode, OperationTypeDefinitionNode, SchemaDefinitionNode, TypeDefinitionNode, TypeNode, UnionTypeDefinitionNode } from 'graphql';
@@ -35,7 +35,7 @@ export function schemaDefinition(schema: GraphQLSchema): SchemaDefinitionNode {
   }
 }
 
-export function typeDefinitionNode(node: GraphQLASTNode): TypeDefinitionNode {
+export function typeDefinitionNode(node: GraphQLNode): TypeDefinitionNode {
   if (node.type === 'interface' || node.type === 'type') {
     const interfaces = node.type === 'interface' ? node.interfaces : node.interfaces;
     return {
@@ -70,7 +70,7 @@ export function typeDefinitionNode(node: GraphQLASTNode): TypeDefinitionNode {
   throw new Error(`invalid definition: ${node.type}`);
 }
 
-export function typeNode(self: string, field: GraphQLReturnType): TypeNode {
+export function typeNode(self: string, field: ReturnTypeNode): TypeNode {
   const type: NamedTypeNode | ListTypeNode = (() => {
     if (field.type === 'list') {
       return {
@@ -98,7 +98,7 @@ export function typeNode(self: string, field: GraphQLReturnType): TypeNode {
   }
 }
 
-export function inputTypeNode(type: GraphQLInputType): TypeNode {
+export function inputTypeNode(type: RequestTypeNode): TypeNode {
   if (type.type === 'list') {
     return {
       kind: 'ListType',

@@ -64,10 +64,13 @@ const client = gql.gqlClient(schema);
 
 const query = client.compileQuery('Test', client => client.getPerson({id: 'id'}, person => person
   .id()
+  .$on('Dog', dog => dog
+    .bark())
 ));
 const query2 = client.compileQuery({id: gql.ID}, ({id}, root) =>
   root.getPerson({id}, person => person
     .id()
+    .name()
     .$on('Bird', bird => bird
       .tweet()
       .age()
@@ -75,10 +78,14 @@ const query2 = client.compileQuery({id: gql.ID}, ({id}, root) =>
   )
 );
 
-query.execute().then(r => r.id);
+query.execute().then(r => {
+  if (r.__typename === 'Dog') {
+    r.bark; // string
+  }
+});
 query2.execute({id: 'id'}).then(r => {
   if (r.__typename === 'Bird') {
-    r.tweet;
+    r.tweet; // string | undefined
   }
 });
 
@@ -89,7 +96,7 @@ const result = client.query(q => ({
       .bark()
     )
     .$on('Bird', bird => bird
-      .friends(f => f
+      .friends(friend => friend
         .id())
       .tweet())
   ),
