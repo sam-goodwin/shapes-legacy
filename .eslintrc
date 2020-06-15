@@ -1,0 +1,88 @@
+{
+  "env": {
+    "browser": false,
+    "jest": true,
+    "node": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:promise/recommended",
+    "plugin:unicorn/recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "createDefaultProgram": true,
+    "ecmaVersion": 2020,
+    "project": "tsconfig.dev.json",
+    "sourceType": "module"
+  },
+  "plugins": [
+    "@typescript-eslint",
+    "promise",
+    "unicorn",
+    "no-null",
+    "sort-keys-fix",
+    "sort-destructure-keys",
+    "sort-class-members",
+    "typescript-sort-keys",
+    "tsdoc"
+  ],
+  "root": true,
+  "rules": {
+    "@typescript-eslint/ban-ts-ignore": "off",
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "@typescript-eslint/interface-name-prefix": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-for-in-array": "off",
+    "@typescript-eslint/no-namespace": "off",
+    "@typescript-eslint/no-non-null-assertion": "off",
+    "@typescript-eslint/no-unsafe-assignment": "off",
+    "@typescript-eslint/no-unsafe-call": "off",
+    "@typescript-eslint/no-unsafe-member-access": "off",
+    "@typescript-eslint/no-unsafe-return": "off",
+    "@typescript-eslint/no-unused-vars": "off",
+    "@typescript-eslint/no-use-before-define": "off",
+    "@typescript-eslint/unbound-method": 0,
+    "arrow-parens": ["error", "always"],
+    "import/order": "off",
+    "no-inner-declarations": "off",
+    "no-null/no-null": "error",
+    "sort-class-members/sort-class-members": [
+      "error",
+      {
+        "accessorPairPositioning": "getThenSet",
+        "order": [
+          "[static-properties]",
+          "[static-methods]",
+          "[properties]",
+          "[conventional-private-properties]",
+          "constructor",
+          "[methods]",
+          "[conventional-private-methods]"
+        ]
+      }
+    ],
+    "sort-destructure-keys/sort-destructure-keys": "error",
+    "sort-imports": [
+      "error",
+      {
+        "ignoreCase": false,
+        "ignoreDeclarationSort": false,
+        "ignoreMemberSort": false,
+        "memberSyntaxSortOrder": ["none", "all", "multiple", "single"]
+      }
+    ],
+    "sort-keys-fix/sort-keys-fix": "error",
+    "tsdoc/syntax": "error",
+    "typescript-sort-keys/interface": "off",
+    "typescript-sort-keys/string-enum": "error",
+    "unicorn/consistent-function-scoping": "off",
+    "unicorn/error-message": "off",
+    "unicorn/new-for-builtins": "off",
+    "unicorn/no-nested-ternary": "off",
+    "unicorn/prevent-abbreviations": "off"
+  }
+}

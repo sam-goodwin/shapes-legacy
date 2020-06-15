@@ -1,4 +1,5 @@
-import { assertIsType, FunctionType, GraphQLAST, GraphQLASTNode, GraphQLInputFields, GraphQLInputType, GraphQLReturnFields, InputParameter, InterfaceType, ListType, PrimtiveType, ReferenceType, SelfType, Type, UnionType } from './ast';
+// @ts-ignore
+import { FunctionType, GraphQLAST, GraphQLASTNode, GraphQLInputFields, GraphQLInputType, GraphQLReturnFields, InputParameter, InterfaceType, ListType, PrimtiveType, ReferenceType, SelfType, Type, UnionType, assertIsType } from './ast';
 import { parseTree } from './query-interpreter';
 import { Value } from './value';
 

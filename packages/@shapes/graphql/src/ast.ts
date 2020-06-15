@@ -2,7 +2,7 @@ import { UnionToIntersection } from './util';
 
 export type GraphQLASTNode = GraphQLReturnType | GraphQLInputType;
 
-export interface GraphQLAST extends Record<string, GraphQLASTNode> {}
+export type GraphQLAST = Record<string, GraphQLASTNode>
 export namespace GraphQLAST {
   /**
    * Collect all nodes from the AST that are of a certain type.
@@ -87,8 +87,9 @@ export type GraphQLInputType = (
 export type GraphQLInputFields = Record<string, GraphQLInputType>;
 
 export class BaseType {
+  // @ts-ignore
   public readonly required: boolean;
-
+  // @ts-ignore
   public get ['!'](): this & {required: true;} {
     return {
       ...this,
@@ -200,7 +201,7 @@ export class UnionType<
   }
 }
 
-export interface EnumValues extends Record<string, string> {}
+export type EnumValues = Record<string, string>
 export class EnumType<
   ID extends string = string,
   E extends EnumValues = EnumValues
@@ -219,6 +220,7 @@ export class FunctionType<
   Returns extends GraphQLReturnType = GraphQLReturnType
 > extends BaseType {
   public readonly id?: never;
+  // @ts-ignore
   public readonly type: 'function';
 
   constructor(
@@ -230,6 +232,7 @@ export class FunctionType<
 }
 
 export class InputParameter<ID extends string, T extends GraphQLInputType> {
+  // @ts-ignore
   public readonly type: 'parameter';
   constructor(
     public readonly id: ID,

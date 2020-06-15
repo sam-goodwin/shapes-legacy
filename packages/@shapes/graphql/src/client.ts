@@ -1,9 +1,13 @@
+// @ts-ignore
 import { DocumentNode } from 'graphql';
+// @ts-ignore
 import { GraphQLAST, GraphQLASTNode, GraphQLInputFields, GraphQLInputType, InputParameter, Type } from './ast';
 import { GraphQLSchema } from './schema';
+// @ts-ignore
 import { GQL, GqlResult, GqlResultType, Selector } from './selector';
 import { Value } from './value';
 
+// @ts-ignore
 export function gqlClient<S extends GraphQLSchema>(schema: S): GqlClient<S> {
   throw new Error('todo');
 }

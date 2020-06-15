@@ -1,7 +1,7 @@
 import { GraphQLASTNode, GraphQLInputType, GraphQLReturnType } from './ast';
 import { GraphQLSchema } from './schema';
 
-import type { DocumentNode, EnumTypeDefinitionNode, FieldDefinitionNode, ListTypeNode, NamedTypeNode, NameNode, OperationTypeDefinitionNode, SchemaDefinitionNode, TypeDefinitionNode, TypeNode, UnionTypeDefinitionNode } from 'graphql';
+import type { DocumentNode, EnumTypeDefinitionNode, FieldDefinitionNode, ListTypeNode, NameNode, NamedTypeNode, OperationTypeDefinitionNode, SchemaDefinitionNode, TypeDefinitionNode, TypeNode, UnionTypeDefinitionNode } from 'graphql';
 
 /**
  * Compiles a GraphQL Document from
@@ -9,11 +9,11 @@ import type { DocumentNode, EnumTypeDefinitionNode, FieldDefinitionNode, ListTyp
  */
 export function toGraphQLAST(schema: GraphQLSchema): DocumentNode {
   return {
-    kind: 'Document',
     definitions: [
       schemaDefinition(schema),
       ...Object.values(schema.graph).map(typeDefinitionNode)
-    ]
+    ],
+    kind: 'Document'
   };
 }
 
@@ -39,20 +39,21 @@ export function typeDefinitionNode(node: GraphQLASTNode): TypeDefinitionNode {
   if (node.type === 'interface' || node.type === 'type') {
     const interfaces = node.type === 'interface' ? node.interfaces : node.interfaces;
     return {
-      kind: node.type === 'interface' ? 'InterfaceTypeDefinition' : 'ObjectTypeDefinition',
-      name: nameNode(node.id),
-      interfaces: interfaces === undefined ? undefined : interfaces.map(n => nameTypeNode(n as string)),
       fields: Object.entries(node.fields).map(([fieldName, field]) => ({
         kind: 'FieldDefinition',
         name: nameNode(fieldName),
         type: typeNode(node.id, field)
-      }) as FieldDefinitionNode)
+      }) as FieldDefinitionNode),
+      // @ts-ignore
+      interfaces: interfaces === undefined ? undefined : interfaces.map((n) => nameTypeNode(n)),
+      kind: node.type === 'interface' ? 'InterfaceTypeDefinition' : 'ObjectTypeDefinition',
+      name: nameNode(node.id)
     } as TypeDefinitionNode;
   } else if (node.type === 'union') {
     return {
       kind: 'UnionTypeDefinition',
       name: nameNode(node.id),
-      types: node.union.map(value => ({
+      types: node.union.map((value) => ({
         kind: 'NamedType',
         name: nameNode(value)
       }))
@@ -61,8 +62,10 @@ export function typeDefinitionNode(node: GraphQLASTNode): TypeDefinitionNode {
     return {
       kind: 'EnumTypeDefinition',
       name: nameNode(node.id),
+      // @ts-ignore
       values: Object.entries(node.values).map(([name, value]) => ({
         kind: 'EnumValueDefinition',
+        // @ts-ignore
         name: nameNode(value)
       }))
     } as EnumTypeDefinitionNode;

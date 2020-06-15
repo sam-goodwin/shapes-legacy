@@ -1,0 +1,18 @@
+{
+  "exclude": ["**/*.test.*"],
+  "excludeNotDocumented": true,
+  "excludeNotExported": true,
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "gitRemote": "https://github.com/punchcard/shapes.git",
+  "hideGenerator": true,
+  "includes": "packages",
+  "listInvalidSymbolLinks": true,
+  "mode": "modules",
+  "name": "Shapes",
+  "out": "docs/reference",
+  "plugin": ["typedoc-plugin-markdown"],
+  "readme": "none",
+  "stripInternal": true,
+  "tsconfig": "tsconfig.dev.json"
+}

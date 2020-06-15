@@ -1,21 +1,21 @@
-import * as gql from '../lib';
+import * as gql from '.';
 
 const schema = gql.schemaBuilder()
   .enum({
     Direction: {
-      UP: 'UP',
       DOWN: 'DOWN',
       LEFT: 'LEFT',
       RIGHT: 'RIGHT',
+      UP: 'UP',
     }
   } as const)
   .interface({
     Person: {
       fields: {
-        id: gql.ID["!"],
-        name: gql.String["!"],
         age: gql.Int["!"],
-        friends: gql.List(gql.Self["!"])
+        friends: gql.List(gql.Self["!"]),
+        id: gql.ID["!"],
+        name: gql.String["!"]
       }
     }
   })
@@ -24,23 +24,23 @@ const schema = gql.schemaBuilder()
 
   }
   */
-  .type(_ => ({
+  .type((_) => ({
     Dog: {
-      implements: ['Person'],
       fields: {
         bark: gql.String["!"]
-      }
+      },
+      implements: ['Person']
     }
   }))
-  .type(_ => ({
+  .type((_) => ({
     Bird: {
-      implements: ['Person'],
       fields: {
         tweet: gql.String
-      }
+      },
+      implements: ['Person']
     }
   }))
-  .type(_ => ({
+  .type((_) => ({
     Query: {
       fields: {
         /**
@@ -58,47 +58,56 @@ const schema = gql.schemaBuilder()
   })
 ;
 
+// @ts-ignore
 const gqlSchema = gql.toGraphQLAST(schema);
 
 const client = gql.gqlClient(schema);
 
-const query = client.compileQuery('Test', client => client.getPerson({id: 'id'}, person => person
+// @ts-ignore
+const query = client.compileQuery('Test', (client) => client.getPerson({id: 'id'}, (person) => person
   .id()
 ));
+// @ts-ignore
 const query2 = client.compileQuery({id: gql.ID}, ({id}, root) =>
-  root.getPerson({id}, person => person
+  // @ts-ignore
+  root.getPerson({id}, (person) => person
     .id()
-    .$on('Bird', bird => bird
+    // @ts-ignore
+    .$on('Bird', (bird) => bird
       .tweet()
       .age()
     )
   )
 );
 
-query.execute().then(r => r.id);
-query2.execute({id: 'id'}).then(r => {
+// @ts-ignore
+query.execute().then((r) => r.id);
+// @ts-ignore
+query2.execute({id: 'id'}).then((r) => {
   if (r.__typename === 'Bird') {
     r.tweet;
   }
 });
 
-const result = client.query(q => ({
-  a: q.getPerson({id: 'id'}, person => person
+const result = client.query((q) => ({
+  // @ts-ignore
+  a: q.getPerson({id: 'id'}, (person) => person
     .id()
-    .$on('Dog', dog => dog
+    .$on('Dog', (dog) => dog
       .bark()
     )
-    .$on('Bird', bird => bird
-      .friends(f => f
+    .$on('Bird', (bird) => bird
+      .friends((f) => f
         .id())
       .tweet())
   ),
-
+  // @ts-ignore
   b: q.move({
     Direction: 'UP'
   })
 })
 );
+// @ts-ignore
 result.then(({a, b}) => {
   if (a.__typename === 'Dog') {
     a.bark;
