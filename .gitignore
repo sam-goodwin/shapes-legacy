@@ -8,3 +8,5 @@ cdk.out
 punchcard*.tgz
 packages/**/lib
 coverage
+packages/**/cjs
+packages/**/esm
