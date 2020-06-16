@@ -1,37 +1,37 @@
 {
-  "name": "@shapes/graphql",
-  "version": "0.0.0",
-  "license": "Apache-2.0",
   "description": "Type-Safe GraphQL",
-  "main": "cjs/index.js",
-  "module": "esm/index.js",
-  "types": "esm/index.d.ts",
   "files": [
     "cjs",
     "esm",
     "README.md"
   ],
-  "private": false,
-  "publishConfig": {
-    "access": "public"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/punchcard/punchcard",
-    "directory": "packages/@shapes/graphql"
-  },
   "bugs": "https://github.com/punchcard/shapes/issues",
+  "license": "Apache-2.0",
+  "author": {
+    "email": "sam.goodwin1989@gmail.com",
+    "name": "Sam Goodwin"
+  },
+  "main": "cjs/index.js",
+  "dependencies": {
+    "graphql": "14.6.0"
+  },
+  "module": "esm/index.js",
   "keywords": [
     "shapes",
     "punchcard",
     "type-safe",
     "graphql"
   ],
-  "author": {
-    "name": "Sam Goodwin",
-    "email": "sam.goodwin1989@gmail.com"
+  "name": "@shapes/graphql",
+  "private": false,
+  "version": "0.0.0",
+  "publishConfig": {
+    "access": "public"
   },
-  "dependencies": {
-    "graphql": "14.6.0"
-  }
+  "repository": {
+    "directory": "packages/@shapes/graphql",
+    "type": "git",
+    "url": "https://github.com/punchcard/punchcard"
+  },
+  "types": "esm/index.d.ts"
 }
