@@ -1,10 +1,10 @@
 // @ts-ignore
-import { DocumentNode } from 'graphql';
+import { GQL, GqlResult, GqlResultType, Selector } from './selector';
 // @ts-ignore
 import { GraphQLAST, GraphQLASTNode, GraphQLInputFields, GraphQLInputType, InputParameter, Type } from './ast';
-import { GraphQLSchema } from './schema';
 // @ts-ignore
-import { GQL, GqlResult, GqlResultType, Selector } from './selector';
+import { DocumentNode } from 'graphql';
+import { GraphQLSchema } from './schema';
 import { Value } from './value';
 
 // @ts-ignore

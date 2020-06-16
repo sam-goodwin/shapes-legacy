@@ -1,10 +1,18 @@
 {
   "name": "root",
+  "license": "Apache-2.0",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/punchcard/punchcard"
+  },
+  "bugs": "https://github.com/punchcard/",
   "workspaces": [
     "packages/@shapes/*"
   ],
   "devDependencies": {
+    "@commitlint/cli": "^8.3.5",
+    "@commitlint/config-conventional": "^8.3.4",
     "@types/jest": "^26.0.0",
     "@types/node": "^14.0.13",
     "@typescript-eslint/eslint-plugin": "^3.3.0",
@@ -18,6 +26,8 @@
     "eslint-plugin-tsdoc": "^0.2.5",
     "eslint-plugin-typescript-sort-keys": "^1.2.0",
     "eslint-plugin-unicorn": "^20.1.0",
+    "exitzero": "^1.0.1",
+    "husky": "^4.2.5",
     "jest": "^26.0.1",
     "lerna": "^3.22.1",
     "ts-jest": "^26.1.0",
@@ -44,11 +54,23 @@
     ],
     "verbose": false
   },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-push": "yarn lint && yarn test && yarn build:reference && exitzero yarn commit:reference",
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }
+  },
   "scripts": {
     "bootstrap": "yarn && yarn lerna bootstrap",
     "clean:node_modules": "find . -name 'node_modules' -type d -prune -exec rm -rf '{}' +",
     "clean:lib": "find . -name 'lib' -type d -prune -exec rm -rf '{}' +",
     "clean": "yarn clean:node_modules & yarn clean:lib",
+    "lint": "eslint 'packages/**/*' --fix",
     "build": "tsc -b",
     "ex": "ts-node -P tsconfig.dev.json",
     "test": "jest --coverage",

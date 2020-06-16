@@ -80,14 +80,16 @@ const query2 = client.compileQuery({id: gql.ID}, ({id}, root) =>
   )
 );
 
-// @ts-ignore
-query.execute().then((r) => r.id);
-// @ts-ignore
-query2.execute({id: 'id'}).then((r) => {
-  if (r.__typename === 'Bird') {
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
+(async () => {
+  const {id} = await query.execute();
+  console.log(id)
+
+  const r = await query2.execute({id: 'id'})
+  if (r.__typename === "Bird") {
     r.tweet;
   }
-});
+})()
 
 const result = client.query((q) => ({
   // @ts-ignore
@@ -100,17 +102,17 @@ const result = client.query((q) => ({
       .friends((f) => f
         .id())
       .tweet())
-  ),
-  // @ts-ignore
+    ),
+    // @ts-ignore
   b: q.move({
-    Direction: 'UP'
+      Direction: 'UP'
   })
-})
-);
-// @ts-ignore
-result.then(({a, b}) => {
-  if (a.__typename === 'Dog') {
+}));
+
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
+(async () => {
+  const {a, b} = await result;
+  if (a.__typename === "Dog") {
     a.bark;
-  } else {
-  }
-});
+  } else {}
+})();

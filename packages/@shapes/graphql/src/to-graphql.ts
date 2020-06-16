@@ -1,7 +1,6 @@
+import type { DocumentNode, EnumTypeDefinitionNode, FieldDefinitionNode, ListTypeNode, NameNode, NamedTypeNode, OperationTypeDefinitionNode, SchemaDefinitionNode, TypeDefinitionNode, TypeNode, UnionTypeDefinitionNode } from 'graphql';
 import { GraphQLASTNode, GraphQLInputType, GraphQLReturnType } from './ast';
 import { GraphQLSchema } from './schema';
-
-import type { DocumentNode, EnumTypeDefinitionNode, FieldDefinitionNode, ListTypeNode, NameNode, NamedTypeNode, OperationTypeDefinitionNode, SchemaDefinitionNode, TypeDefinitionNode, TypeNode, UnionTypeDefinitionNode } from 'graphql';
 
 /**
  * Compiles a GraphQL Document from
@@ -18,7 +17,7 @@ export function toGraphQLAST(schema: GraphQLSchema): DocumentNode {
 }
 
 export function schemaDefinition(schema: GraphQLSchema): SchemaDefinitionNode {
-  const operationTypes: OperationTypeDefinitionNode[] = [operationTypeDefinition('query', schema.query as string)];
+  const operationTypes: OperationTypeDefinitionNode[] = [operationTypeDefinition('query', schema.query)];
   if (!schema.mutation === undefined) {
     operationTypes.push(operationTypeDefinition('mutation', schema.mutation as string));
   }

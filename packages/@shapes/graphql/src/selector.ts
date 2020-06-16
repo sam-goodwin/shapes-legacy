@@ -1,9 +1,8 @@
 // @ts-ignore
 import { FunctionType, GraphQLAST, GraphQLASTNode, GraphQLInputFields, GraphQLInputType, GraphQLReturnFields, InputParameter, InterfaceType, ListType, PrimtiveType, ReferenceType, SelfType, Type, UnionType, assertIsType } from './ast';
-import { parseTree } from './query-interpreter';
-import { Value } from './value';
-
 import type { SelectionSetNode } from 'graphql';
+import { Value } from './value';
+import { parseTree } from './query-interpreter';
 
 export function gqlSelector<Graph extends GraphQLAST, ID extends keyof Graph>(
   graph: Graph,
@@ -13,7 +12,7 @@ export function gqlSelector<Graph extends GraphQLAST, ID extends keyof Graph>(
   assertIsType(rootNode);
   parseTree(graph, rootNode);
 
-  return null as any;
+  return undefined as any;
 }
 
 export const GQL = Symbol.for('@shapes/graphql');
