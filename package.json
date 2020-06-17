@@ -67,9 +67,6 @@
   },
   "scripts": {
     "bootstrap": "yarn && yarn lerna bootstrap",
-    "clean:node_modules": "find . -name 'node_modules' -type d -prune -exec rm -rf '{}' +",
-    "clean:lib": "find . -name 'lib' -type d -prune -exec rm -rf '{}' +",
-    "clean": "yarn clean:node_modules & yarn clean:lib",
     "lint": "eslint 'packages/**/*' --fix",
     "build": "tsc -b",
     "ex": "ts-node -P tsconfig.dev.json",
