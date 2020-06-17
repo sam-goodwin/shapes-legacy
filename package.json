@@ -4,9 +4,9 @@
   "private": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/punchcard/punchcard"
+    "url": "https://github.com/punchcard/shapes"
   },
-  "bugs": "https://github.com/punchcard/",
+  "bugs": "https://github.com/punchcard/shapes",
   "workspaces": [
     "packages/@shapes/*"
   ],
