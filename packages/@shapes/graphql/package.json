@@ -24,7 +24,7 @@
   "repository": {
     "directory": "packages/@shapes/graphql",
     "type": "git",
-    "url": "https://github.com/punchcard/punchcard"
+    "url": "https://github.com/punchcard/shapes"
   },
   "bugs": "https://github.com/punchcard/shapes/issues",
   "author": "Sam Goodwin <sam.goodwin1989@gmail.com>",
