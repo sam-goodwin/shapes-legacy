@@ -136,7 +136,7 @@ class BaseType {
   }
 }
 
-class BaseScalarType<ID extends string> extends BaseType {
+export class ScalarType<ID extends string> extends BaseType {
   public readonly type: 'scalar' = 'scalar';
   constructor(
     public readonly id: ID
@@ -158,19 +158,19 @@ export type ScalarTypeNode =
 ;
 
 export type BooleanNode = typeof Boolean;
-export const Boolean = new BaseScalarType('Boolean');
+export const Boolean = new ScalarType('Boolean');
 
 export type FloatNode = typeof Float;
-export const Float = new BaseScalarType('Float');
+export const Float = new ScalarType('Float');
 
 export type IDNode = typeof ID;
-export const ID = new BaseScalarType('ID');
+export const ID = new ScalarType('ID');
 
 export type IntNode = typeof Int;
-export const Int = new BaseScalarType('Int');
+export const Int = new ScalarType('Int');
 
 export type StringNode = typeof String;
-export const String = new BaseScalarType('String');
+export const String = new ScalarType('String');
 
 export function isPrimitiveType(node: GraphQLNode): node is PrimtiveTypeNode {
   return isScalarTypeNode(node) ||isEnumTypeNode(node) || (isListTypeNode(node) && isPrimitiveType(node.item));

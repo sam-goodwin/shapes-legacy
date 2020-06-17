@@ -1,5 +1,5 @@
 import { ArgumentNode, FieldNode, InlineFragmentNode, ObjectFieldNode, OperationDefinitionNode, SelectionNode, SelectionSetNode, ValueNode, VariableDefinitionNode } from 'graphql';
-import { assertIsInterfaceTypeNode, assertIsTypeNode, assertIsTypeOrInterfaceNode, GraphQLAST, GraphQLNode, InputParameter, InterfaceTypeNode, isFunctionNode, isInputParameter, isInputTypeNode, isInterfaceTypeNode, isListTypeNode, isPrimitiveType, isRequestTypeNode, isScalarTypeNode, isSelfTypeNode, isTypeNode, isUnionTypeNode, RequestTypeNode, RequestTypeNodes, ReturnTypeNode, ReturnTypeNodes, TypeNode, UnionTypeNode } from './ast';
+import { assertIsInterfaceTypeNode, assertIsTypeNode, assertIsTypeOrInterfaceNode, GraphQLAST, GraphQLNode, InputParameter, InterfaceTypeNode, isFunctionNode, isInputParameter, isInputTypeNode, isInterfaceTypeNode, isListTypeNode, isPrimitiveType, isReferenceTypeNode, isRequestTypeNode, isScalarTypeNode, isSelfTypeNode, isTypeNode, isUnionTypeNode, RequestTypeNode, RequestTypeNodes, ReturnTypeNode, ReturnTypeNodes, TypeNode, UnionTypeNode } from './ast';
 import { Schema } from './schema';
 import { GqlResult, GqlResultType, Selector } from './selector';
 import { inputTypeNode } from './to-graphql';
@@ -81,7 +81,7 @@ export class QueryCompiler<S extends Schema> {
       [name]: new InputParameter(name, parameter)
     })).reduce((a, b) => ({...a, ...b}));
 
-    const queryResult: SelectionSetBuilder = Object.keys(parameters).length > 0 ?
+    const queryResult: SelectionSetBuilder = Object.keys(parameters).length === 0 ?
       (query as any)(new (this.queryRoot)([])) :
       (query as any)(inputParameters, new (this.queryRoot)([]))
     ;
@@ -103,7 +103,7 @@ export class QueryCompiler<S extends Schema> {
           kind: 'Variable',
           name: {
             kind: 'Name',
-            value: `$${name}`
+            value: name
           }
         },
         type: inputTypeNode(parameter)
@@ -216,16 +216,16 @@ function parseOnSelector(graph: GraphQLAST, builder: SelectionSetBuilderType, ty
       },
       selectionSet: {
         kind: 'SelectionSet',
-        selections: selector(unionType).$selections
+        selections: selector(new unionType([])).$selections
       }
     } as InlineFragmentNode]));
   };
 }
 
-function parseFields(graph: GraphQLAST, self: TypeNode | InterfaceTypeNode, builder: any) {
+function parseFields(graph: GraphQLAST, self: TypeNode | InterfaceTypeNode, builder: SelectionSetBuilderType) {
   const fields = findFields(graph, self);
   for (const [fieldName, field] of Object.entries(fields)) {
-    const fieldSelector = parseFieldSelector(graph, self, field, fieldName);
+    const fieldSelector = parseFieldSelector(graph, builder, field, fieldName);
 
     builder.prototype[fieldName] = function(...args: any[]) {
       return new builder(this.$selections.concat([fieldSelector(...args)]));
@@ -235,7 +235,7 @@ function parseFields(graph: GraphQLAST, self: TypeNode | InterfaceTypeNode, buil
 
 function parseFieldSelector(
   graph: GraphQLAST,
-  self: TypeNode | InterfaceTypeNode,
+  self: SelectionSetBuilderType,
   field: ReturnTypeNode,
   fieldName: string
 ): (...args: any[]) => SelectionNode {
@@ -251,10 +251,13 @@ function parseFieldSelector(
     } as FieldNode);
   } else if (isListTypeNode(field)) {
     const item = parseTypeInterfaceUnionNode(graph, field.item as TypeNode);
-    return (itemSelector: (s: any) => SelectionSetNode) => ({
+    return (itemSelector: (s: SelectionSetBuilder) => SelectionSetBuilder) => ({
       kind: 'Field',
       name,
-      selectionSet: itemSelector(item)
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: itemSelector(new item([])).$selections
+      }
     } as FieldNode);
   } else if (isFunctionNode(field)) {
     let returnSelector: SelectionSetBuilderType;
@@ -289,9 +292,34 @@ function parseFieldSelector(
         }) : undefined
       } as SelectionNode;
     };
+  } else if (isSelfTypeNode(field)) {
+    return (selfSelector: (s: SelectionSetBuilder) => SelectionSetBuilder) => ({
+      kind: 'Field',
+      name,
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: selfSelector(new self([])).$selections
+      }
+    });
+  } else if (isReferenceTypeNode(field)) {
+    return parseFieldSelector(graph, self, graph[field.id] as any /*todo*/, fieldName);
+  } else if (isTypeNode(field) || isInterfaceTypeNode(field) || isUnionTypeNode(field)) {
+    let type: SelectionSetBuilderType;
+    return (selector: (s: SelectionSetBuilder) => SelectionSetBuilder) => {
+      if (!type) {
+        type = parseTypeInterfaceUnionNode(graph, field);
+      }
+      return {
+        kind: 'Field',
+        name,
+        selectionSet: {
+          kind: 'SelectionSet',
+          selections: selector(new type([])).$selections
+        }
+      };
+    };
   }
-  console.error(field);
-  throw new Error(`cannot parse field selector for field type: ${field.type}`);
+  throw new Error(`cannot parse field selector for field type: ${(field as any).type}`);
 }
 
 function valueNode<
@@ -311,7 +339,7 @@ function valueNode<
       kind: 'Variable',
       name: {
         kind: 'Name',
-        value: `$${value.id}`
+        value: value.id
       }
     };
   } else if (isScalarTypeNode(argType)) {
