@@ -9,7 +9,6 @@ import { GraphQLSchema } from './schema';
 export function toGraphQLAST(schema: GraphQLSchema): DocumentNode {
   return {
     kind: 'Document',
-    // eslint-disable-next-line sort-keys-fix/sort-keys-fix
     definitions: [
       schemaDefinition(schema),
       ...Object.values(schema.graph).map(typeDefinitionNode)

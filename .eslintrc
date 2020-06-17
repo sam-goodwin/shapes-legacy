@@ -24,7 +24,6 @@
     "promise",
     "unicorn",
     "no-null",
-    "sort-keys-fix",
     "sort-destructure-keys",
     "sort-class-members",
     "typescript-sort-keys",
@@ -75,7 +74,6 @@
         "memberSyntaxSortOrder": ["none", "all", "multiple", "single"]
       }
     ],
-    "sort-keys-fix/sort-keys-fix": "error",
     "tsdoc/syntax": "error",
     "typescript-sort-keys/interface": "off",
     "typescript-sort-keys/string-enum": "error",
