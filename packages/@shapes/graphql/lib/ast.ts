@@ -150,15 +150,15 @@ export function isScalarTypeNode(node: any): node is ScalarTypeNode {
 }
 
 export type ScalarTypeNode =
-  | BoolNode
+  | BooleanNode
   | FloatNode
   | IDNode
   | IntNode
   | StringNode
 ;
 
-export type BoolNode = typeof Bool;
-export const Bool = new BaseScalarType('Bool');
+export type BooleanNode = typeof Boolean;
+export const Boolean = new BaseScalarType('Boolean');
 
 export type FloatNode = typeof Float;
 export const Float = new BaseScalarType('Float');
@@ -366,7 +366,7 @@ export class FunctionNode<
   Returns extends ReturnTypeNode = ReturnTypeNode
 > extends BaseType {
   public readonly id?: never;
-  public readonly type: 'function';
+  public readonly type: 'function' = 'function';
 
   constructor(
     public readonly args: Args,
@@ -381,7 +381,7 @@ export function isInputParameter(a: any): a is InputParameter<string, RequestTyp
 }
 
 export class InputParameter<ID extends string, T extends RequestTypeNode> {
-  public readonly type: 'parameter';
+  public readonly type: 'parameter' = 'parameter';
   constructor(
     public readonly id: ID,
     public readonly parameterType: T

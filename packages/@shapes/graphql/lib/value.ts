@@ -1,4 +1,4 @@
-import { GraphQLNode, BoolNode, EnumTypeNode, FloatNode, GraphQLAST, RequestTypeNodes, ReturnTypeNodes, IDNode, InputTypeNode, IntNode, ReferenceTypeNode, SelfTypeNode, StringNode, TypeNode } from './ast';
+import { BooleanNode, EnumTypeNode, FloatNode, GraphQLAST, GraphQLNode, IDNode, InputTypeNode, IntNode, ReferenceTypeNode, RequestTypeNodes, ReturnTypeNodes, SelfTypeNode, StringNode, TypeNode } from './ast';
 import { KeysOfType } from './util';
 
 export type Values<
@@ -28,7 +28,7 @@ type _Value<
 > =
   Node extends StringNode | IDNode ? string :
   Node extends IntNode | FloatNode ? number :
-  Node extends BoolNode ? boolean :
+  Node extends BooleanNode ? boolean :
   Node extends InputTypeNode<infer ID, infer F> ? Values<Graph, F, ID> :
   Node extends EnumTypeNode<string, infer V> ? V[keyof V] :
   Node extends TypeNode<infer ID, infer F> ? Values<Graph, F, ID> :

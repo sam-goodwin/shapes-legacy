@@ -1,6 +1,6 @@
 export {
   $,
-  Bool,
+  Boolean as Bool,
   Float,
   Function,
   ID,
@@ -10,6 +10,9 @@ export {
   String,
 } from './ast';
 
-export { gqlClient } from './client';
-export { schemaBuilder } from './schema';
-export { toGraphQLAST } from './to-graphql';
+export { QueryCompiler } from './query-compiler';
+export { SchemaBuilder } from './schema';
+export {
+  printGraphQLSchema,
+  toGraphQLAST
+} from './to-graphql';

@@ -1,11 +1,7 @@
 import { EnumTypeNode, GraphQLAST, InputTypeNode, InterfaceTypeNode, ReferenceTypeNode, RequestTypeNodes, ReturnTypeNodes, TypeNode, UnionTypeNode } from './ast';
 import { RowLacks } from './util';
 
-export function schemaBuilder(): GraphQLSchemaBuilder<{}> {
-  return new GraphQLSchemaBuilder<{}>({});
-}
-
-export interface GraphQLSchema<
+export interface Schema<
   T extends GraphQLAST = GraphQLAST,
   Query extends keyof T = keyof T,
   Mutation extends keyof T | undefined = keyof T | undefined
@@ -15,8 +11,11 @@ export interface GraphQLSchema<
   readonly mutation: Mutation;
 }
 
-export class GraphQLSchemaBuilder<G extends GraphQLAST = GraphQLAST> {
-  constructor(public readonly graph: G) {}
+export class SchemaBuilder<G extends GraphQLAST = {}> {
+  public readonly graph: G;
+  constructor(graph?: G) {
+    this.graph = graph || {} as any;
+  }
 
   public build<
     Q extends keyof G,
@@ -24,7 +23,7 @@ export class GraphQLSchemaBuilder<G extends GraphQLAST = GraphQLAST> {
   >(props: {
     query: Q,
     mutation?: M
-  }): GraphQLSchema<G, Q, M> {
+  }): Schema<G, Q, M> {
     return {
       graph: this.graph,
       query: props.query,
@@ -32,14 +31,14 @@ export class GraphQLSchemaBuilder<G extends GraphQLAST = GraphQLAST> {
     };
   }
 
-  public import<S2 extends {graph: GraphQLAST}>(types: S2): GraphQLSchemaBuilder<G & S2['graph']> {
-    return new GraphQLSchemaBuilder({
+  public import<S2 extends {graph: GraphQLAST}>(types: S2): SchemaBuilder<G & S2['graph']> {
+    return new SchemaBuilder({
       ...this.graph,
       ...types
     }) as any;
   }
 
-  public interface<I extends InterfaceDefinitions<G>>(i: RowLacks<I, keyof G> | ((schema: G) => I)): GraphQLSchemaBuilder<G & {
+  public interface<I extends InterfaceDefinitions<G>>(def: RowLacks<I, keyof G> | ((schema: G) => I)): SchemaBuilder<G & {
     [ID in Extract<keyof I, string>]: InterfaceTypeNode<
       ID,
       (
@@ -50,18 +49,15 @@ export class GraphQLSchemaBuilder<G extends GraphQLAST = GraphQLAST> {
       I[ID]['extends'] extends (keyof G)[] ? I[ID]['extends'] : undefined
     >;
   }> {
-    return new GraphQLSchemaBuilder({
+    return new SchemaBuilder<any>({
       ...this.graph,
-      ...(Object.entries(i).map(([ID, v]) => ({
-        [ID]: new InterfaceTypeNode(ID, typeof v.fields === 'function' ? v.fields({
-          ...this.graph,
-          [ID]: new ReferenceTypeNode(ID)
-        }) : v.fields, v.extends)
-      })).reduce((a, b) => ({...a, ...b})))
+      ...(Object.entries(typeof def === 'function' ? def(this.graph) : def).map(([ID, interfaceDef]) => ({
+        [ID]: new InterfaceTypeNode(ID, interfaceDef.fields, interfaceDef.extends)
+      })).reduce((a, b) => ({...a, ...b}), {}))
     }) as any;
   }
 
-  public type<I extends TypeDefinitions<G>>(i: RowLacks<I, keyof G> | ((schema: G) => I)): GraphQLSchemaBuilder<G & {
+  public type<I extends TypeDefinitions<G>>(def: RowLacks<I, keyof G> | ((schema: G) => I)): SchemaBuilder<G & {
     [ID in keyof I]: ID extends string ? TypeNode<
       ID,
       I[ID]['fields'] extends (...args: any[]) => ReturnTypeNodes ?
@@ -70,18 +66,15 @@ export class GraphQLSchemaBuilder<G extends GraphQLAST = GraphQLAST> {
       I[ID]['implements'] extends (keyof G)[] ? I[ID]['implements'] : undefined
     > : never;
   }> {
-    return new GraphQLSchemaBuilder({
+    return new SchemaBuilder<any>({
       ...this.graph,
-      ...(Object.entries(i).map(([ID, v]) => ({
-        [ID]: new InterfaceTypeNode(ID, typeof v.fields === 'function' ? v.fields({
-          ...this.graph,
-          [ID]: new ReferenceTypeNode(ID)
-        }) : v.fields, v.implements)
-      })).reduce((a, b) => ({...a, ...b})))
+      ...(Object.entries(typeof def === 'function' ? def(this.graph) : def).map(([ID, typeDef]) => ({
+        [ID]: new TypeNode(ID, typeDef.fields, typeDef.implements)
+      })).reduce((a, b) => ({...a, ...b}), {}))
     }) as any;
   }
 
-  public input<I extends InputTypeDefinitions<G>>(i: RowLacks<I, keyof G> | ((schema: G) => I)): GraphQLSchemaBuilder<G & {
+  public input<I extends InputTypeDefinitions>(def: RowLacks<I, keyof G> | ((schema: G) => I)): SchemaBuilder<G & {
     [ID in keyof I]: ID extends string ?
       InputTypeNode<
         ID,
@@ -91,36 +84,33 @@ export class GraphQLSchemaBuilder<G extends GraphQLAST = GraphQLAST> {
       > :
       never;
   }> {
-    return new GraphQLSchemaBuilder({
+    return new SchemaBuilder({
       ...this.graph,
-      ...(Object.entries(i).map(([ID, v]) => ({
-        [ID]: new InputTypeNode(ID, typeof v.fields === 'function' ? v.fields({
-          ...this.graph,
-          [ID]: new ReferenceTypeNode(ID)
-        }) : v.fields)
-      })).reduce((a, b) => ({...a, ...b})))
+      ...(Object.entries(typeof def === 'function' ? def(this.graph) : def).map(([ID, fields]) => ({
+        [ID]: new InputTypeNode(ID, fields)
+      })).reduce((a, b) => ({...a, ...b}), {}))
     }) as any;
   }
 
-  public union<U extends UnionDefinitions<G>>(union: U): GraphQLSchemaBuilder<G & {
+  public union<U extends UnionDefinitions<G>>(union: U): SchemaBuilder<G & {
     [ID in keyof U]: ID extends string ? UnionTypeNode<ID, U[ID]> : never;
   }> {
-    return new GraphQLSchemaBuilder({
+    return new SchemaBuilder<any>({
       ...this.graph,
       ...(Object.entries(union).map(([ID, u]) => ({
         [ID]: new UnionTypeNode(ID, u)
-      })).reduce((a, b) => ({...a, ...b})))
+      })).reduce((a, b) => ({...a, ...b}), {}))
     }) as any;
   }
 
-  public enum<D extends EnumDefinitions>(definitions: D): GraphQLSchemaBuilder<G & {
+  public enum<D extends EnumDefinitions>(definitions: D): SchemaBuilder<G & {
     [ID in keyof D]: ID extends string ? EnumTypeNode<ID, D[ID]> : never;
   }> {
-    return new GraphQLSchemaBuilder({
+    return new SchemaBuilder({
       ...this.graph,
       ...(Object.entries(definitions).map(([ID, v]) => ({
         [ID]: new EnumTypeNode(ID, v)
-      })).reduce((a, b) => ({...a, ...b})))
+      })).reduce((a, b) => ({...a, ...b}), {}))
       // [id]: new EnumType(id, values)
     }) as any;
   }
@@ -140,9 +130,9 @@ type InterfaceDefinitions<T extends GraphQLAST = GraphQLAST> = {
 };
 
 interface TypeDefinition<
-  T extends GraphQLAST = GraphQLAST,
-  E extends (GraphQLAST.CollectNodes<{type: 'interface'}, T>['id'])[] | undefined =
-    (GraphQLAST.CollectNodes<{type: 'interface'}, T>['id'])[] | undefined
+  G extends GraphQLAST = GraphQLAST,
+  E extends (GraphQLAST.CollectNodes<{type: 'interface'}, G>['id'])[] | undefined =
+    (GraphQLAST.CollectNodes<{type: 'interface'}, G>['id'])[] | undefined
 > {
   implements?: E;
   fields: ReturnTypeNodes;
@@ -151,9 +141,8 @@ type TypeDefinitions<T extends GraphQLAST = GraphQLAST> = {
   [ID in string]: TypeDefinition<T>;
 };
 
-type InputTypeDefinition<T extends GraphQLAST = GraphQLAST> = ReturnTypeNodes | ((schema: T) => ReturnTypeNodes);
-type InputTypeDefinitions<T extends GraphQLAST = GraphQLAST> = {
-  [ID in string]: InputTypeDefinition<T>;
+type InputTypeDefinitions = {
+  [ID in string]: RequestTypeNodes;
 };
 
 type EnumDefinitions = {

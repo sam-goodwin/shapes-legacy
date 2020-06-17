@@ -1,25 +1,11 @@
 import { FunctionNode, GraphQLAST, GraphQLNode, InputParameter, InterfaceTypeNode, ListTypeNode, PrimtiveTypeNode, ReferenceTypeNode, RequestTypeNode, RequestTypeNodes, ReturnTypeNodes, SelfTypeNode, TypeNode, UnionTypeNode } from './ast';
 import { Value } from './value';
 
-import type { SelectionSetNode } from 'graphql';
-
-export function gqlSelector<Graph extends GraphQLAST, ID extends keyof Graph>(
-  graph: Graph,
-  root: ID
-): Selector<Graph, Graph[ID]> {
-  // const rootNode = graph[root];
-  // assertIsType(rootNode);
-  // parseTree(graph, rootNode);
-
-  return null as any;
-}
-
 export const GQL = Symbol.for('@shapes/graphql');
 export type GQL = typeof GQL;
 export interface GqlResult<T = any> {
   [GQL]: {
     read(json: any): T;
-    ast: SelectionSetNode;
   }
 }
 

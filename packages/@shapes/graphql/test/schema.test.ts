@@ -1,6 +1,8 @@
+import 'jest';
+
 import * as gql from '../lib';
 
-const schema = gql.schemaBuilder()
+const schemaBuilder = new gql.SchemaBuilder()
   .enum({
     Direction: {
       UP: 'UP',
@@ -10,105 +12,158 @@ const schema = gql.schemaBuilder()
     }
   } as const)
   .interface({
-    Person: {
+    Animal: {
       fields: {
         id: gql.ID["!"],
         name: gql.String["!"],
-        age: gql.Int["!"],
-        friends: gql.List(gql.Self["!"])
+        parent: gql.Self,
+        dog: gql.$('Dog'),
+        int: gql.Int,
+        float: gql.Float,
+        bool: gql.Bool,
+        list: gql.List(gql.Int),
+        fn: gql.Function({a: gql.ID}, gql.Self["!"])
       }
     }
   })
-  /*
-  type Dog implements Animal {
-
-  }
-  */
   .type(_ => ({
     Dog: {
-      implements: ['Person'],
+      implements: ['Animal'],
       fields: {
         bark: gql.String["!"]
       }
-    }
-  }))
-  .type(_ => ({
+    },
     Bird: {
-      implements: ['Person'],
+      implements: ['Animal'],
       fields: {
-        tweet: gql.String
+        tweets: gql.Bool["!"]
       }
     }
   }))
-  .type(_ => ({
-    Query: {
-      fields: {
-        /**
-         * type Query {
-         *   getPerson(id: ID): Person
-         * }
-         */
-        getPerson: gql.Function({id: gql.ID}, _.Person),
-        move: gql.Function({Direction: _.Direction}, gql.String["!"])
-      }
-    }
-  }))
-  .build({
-    query: 'Query'
+  .union({
+    All: ['Dog', 'Bird']
   })
 ;
 
-const gqlSchema = gql.toGraphQLAST(schema);
+it('should synthesize GraphQL schema with common names', () => {
+  const schema = schemaBuilder
+    .type(_ => ({
+      Query: {
+        fields: {
+          getAnimal: gql.Function({id: gql.ID["!"]}, _.Animal),
+        }
+      },
+      Mutation: {
+        fields: {
+          addAnimal: gql.Function({id: gql.ID["!"]}, _.Animal["!"])
+        }
+      }
+    }))
+    .build({
+      query: 'Query',
+      mutation: 'Mutation'
+    })
+  ;
+  expect(gql.printGraphQLSchema(schema)).toEqual(
+`enum Direction {
+  UP
+  DOWN
+  LEFT
+  RIGHT
+}
 
-const client = gql.gqlClient(schema);
+interface Animal {
+  id: ID!
+  name: String!
+  parent: Animal
+  dog: Dog
+  int: Int
+  float: Float
+  bool: Boolean
+  list: [Int]
+  fn(a: ID): Animal!
+}
 
-const query = client.compileQuery('Test', client => client.getPerson({id: 'id'}, person => person
-  .id()
-  .$on('Dog', dog => dog
-    .bark())
-));
-const query2 = client.compileQuery({id: gql.ID}, ({id}, root) =>
-  root.getPerson({id}, person => person
-    .id()
-    .name()
-    .$on('Bird', bird => bird
-      .tweet()
-      .age()
-    )
-  )
-);
+type Dog implements Animal {
+  bark: String!
+}
 
-query.execute().then(r => {
-  if (r.__typename === 'Dog') {
-    r.bark; // string
-  }
+type Bird implements Animal {
+  tweets: Boolean!
+}
+
+union All = Dog | Bird
+
+type Query {
+  getAnimal(id: ID!): Animal
+}
+
+type Mutation {
+  addAnimal(id: ID!): Animal!
+}
+`);
 });
-query2.execute({id: 'id'}).then(r => {
-  if (r.__typename === 'Bird') {
-    r.tweet; // string | undefined
-  }
-});
 
-const result = client.query(q => ({
-  a: q.getPerson({id: 'id'}, person => person
-    .id()
-    .$on('Dog', dog => dog
-      .bark()
-    )
-    .$on('Bird', bird => bird
-      .friends(friend => friend
-        .id())
-      .tweet())
-  ),
+it('should synthesize GraphQL schema with un-common names', () => {
+  const schema = schemaBuilder
+    .type(_ => ({
+      Query2: {
+        fields: {
+          getAnimal: gql.Function({id: gql.ID["!"]}, _.Animal),
+        }
+      },
+      Mutation2: {
+        fields: {
+          addAnimal: gql.Function({id: gql.ID["!"]}, _.Animal["!"])
+        }
+      }
+    }))
+    .build({
+      query: 'Query2',
+      mutation: 'Mutation2'
+    })
+  ;
+  expect(gql.printGraphQLSchema(schema)).toEqual(
+`schema {
+  query: Query2
+  mutation: Mutation2
+}
 
-  b: q.move({
-    Direction: 'UP'
-  })
-})
-);
-result.then(({a, b}) => {
-  if (a.__typename === 'Dog') {
-    a.bark;
-  } else {
-  }
+enum Direction {
+  UP
+  DOWN
+  LEFT
+  RIGHT
+}
+
+interface Animal {
+  id: ID!
+  name: String!
+  parent: Animal
+  dog: Dog
+  int: Int
+  float: Float
+  bool: Boolean
+  list: [Int]
+  fn(a: ID): Animal!
+}
+
+type Dog implements Animal {
+  bark: String!
+}
+
+type Bird implements Animal {
+  tweets: Boolean!
+}
+
+union All = Dog | Bird
+
+type Query2 {
+  getAnimal(id: ID!): Animal
+}
+
+type Mutation2 {
+  addAnimal(id: ID!): Animal!
+}
+`);
 });
