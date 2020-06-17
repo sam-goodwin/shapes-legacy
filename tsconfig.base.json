@@ -26,5 +26,9 @@
     "typeRoots": ["packages/@shapes/*/node_modules", "node_modules/@types"],
     "useDefineForClassFields": true
   },
-  "exclude": ["packages/@shapes/*/node_modules", "node_modules"]
+  "exclude": [
+    "packages/**/cjs",
+    "packages/@shapes/*/node_modules",
+    "node_modules"
+  ]
 }

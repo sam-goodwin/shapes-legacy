@@ -12,6 +12,7 @@
     "plugin:unicorn/recommended",
     "plugin:@typescript-eslint/recommended-requiring-type-checking"
   ],
+  "ignorePatterns": ["packages/**/cjs/**/*", "packages/**/esm/**/*"],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "createDefaultProgram": true,
