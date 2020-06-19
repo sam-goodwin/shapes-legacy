@@ -18,6 +18,8 @@ npm install @shapes/graphql
 
 ![Schema Building Demo](demo/schema.gif)
 
+![Schema Building Demo](demo/schema-2.gif)
+
 The `SchemaBuilder` type provides methods for incrementally defining types in a GraphQL schema. 
 
 ```ts
