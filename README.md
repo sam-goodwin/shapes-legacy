@@ -6,19 +6,17 @@ Shapes is a library for defining TypeScript-native schemas and APIs. Instead of 
 
 `@shapes/graphql` is a TypeScript library for defining GraphQL schemas and generating type-safe queries natively within TypeScript.
 
+![Query Building Demo](demo/query.gif)
+
+## Install
+
 ```shell
 npm install @shapes/graphql
 ```
 
-## Querying a GraphQL API.
-
-![Query Building Demo](demo/query.gif)
-
 ## Create a GraphQL Schema.
 
-![Schema Building Demo](demo/schema.gif)
-
-![Schema Building Demo](demo/schema-2.gif)
+GraphQL Schemas are defined natively within TypeScript.
 
 The `SchemaBuilder` type provides methods for incrementally defining types in a GraphQL schema. 
 
@@ -44,8 +42,6 @@ const schema = new gql.SchemaBuilder()
     // mutation: undefined, // optional: the root fo the Mutation API
   });
 ```
-
-
 
 ### Defining a Type
 
@@ -121,4 +117,4 @@ schema
 
 To finalize a schema, 
 
-## Type-Safe GraphQL Queries
+
