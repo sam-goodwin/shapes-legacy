@@ -1,27 +1,72 @@
-import { EnumTypeNode, GraphQLAST, InputTypeNode, InterfaceTypeNode, ReferenceTypeNode, RequestTypeNodes, ReturnTypeNodes, TypeNode, UnionTypeNode } from './ast';
+import { EnumTypeNode, GraphQLAST, InputTypeNode, InterfaceTypeNode, RequestTypeNodes, ReturnTypeNodes, TypeNode, UnionTypeNode } from './ast';
 import { RowLacks } from './util';
 
+/**
+ * A GraphQL Schema.
+ */
 export interface Schema<
-  T extends GraphQLAST = GraphQLAST,
-  Query extends keyof T = keyof T,
-  Mutation extends keyof T | undefined = keyof T | undefined
+  /**
+   * Map of all types in the GraphQL Schema.
+   */
+  Graph extends GraphQLAST = GraphQLAST,
+  /**
+   * ID of the type which is the root of the Query API.
+   */
+  Query extends keyof Graph = keyof Graph,
+  /**
+   * ID of the type which is the root of the Mutation API.
+   */
+  Mutation extends keyof Graph | undefined = keyof Graph | undefined
 > {
-  readonly graph: T;
+  /**
+   * Map of all types in the GraphQL Schema.
+   */
+  readonly graph: Graph;
+  /**
+   * ID of the type which is the root of the Query API.
+   */
   readonly query: Query;
-  readonly mutation: Mutation;
+  /**
+   * ID of the type which is the root of the Mutation API.
+   *
+   * @default undefined
+   */
+  readonly mutation?: Mutation;
 }
 
+/**
+ * Chained builder for constructing a type-safe GraphQL schema in native TypeScript.
+ */
 export class SchemaBuilder<G extends GraphQLAST = {}> {
   public readonly graph: G;
   constructor(graph?: G) {
     this.graph = graph || {} as any;
   }
 
+  /**
+   * Finalizes the GraphQL Schema.
+   *
+   * ```ts
+   * schemaBuilder.build({
+   *   query: 'Query'
+   * })
+   * ```
+   *
+   * @param props specify the root types for query and mutations.
+   */
   public build<
     Q extends keyof G,
     M extends keyof G | undefined
   >(props: {
+    /**
+     * ID of the type which is the root of the Query API.
+     */
     query: Q,
+    /**
+     * ID of the type which is the root of the Mutation API.
+     *
+     * @default undefined
+     */
     mutation?: M
   }): Schema<G, Q, M> {
     return {
@@ -31,14 +76,85 @@ export class SchemaBuilder<G extends GraphQLAST = {}> {
     };
   }
 
-  public import<S2 extends {graph: GraphQLAST}>(types: S2): SchemaBuilder<G & S2['graph']> {
+  /**
+   * Import another schema's type system into this one.
+   *
+   * ```ts
+   * const otherSchema = new SchemaBuilder()
+   *   .type({
+   *      Animal: {
+   *        fields: {
+   *          id: gql.ID['!']
+   *        }
+   *      }
+   *    })
+   *   .build(..);
+   *
+   * schemaBuilder
+   *   .import(otherSchema)
+   *   .type(_ => ({
+   *      Zoo: {
+   *        fields: {
+   *          animals: gql.List(_.Animal)
+   *        }
+   *      }
+   *   }))
+   * ```
+   *
+   * @param schema other GraphQL schema to import.
+   */
+  public import<S2 extends {graph: GraphQLAST}>(schema: S2): SchemaBuilder<G & S2['graph']> {
     return new SchemaBuilder({
       ...this.graph,
-      ...types
+      ...schema
     }) as any;
   }
 
-  public interface<I extends InterfaceDefinitions<G>>(def: RowLacks<I, keyof G> | ((schema: G) => I)): SchemaBuilder<G & {
+  /**
+   * Define interface types.
+   *
+   * Option 1 - a literal object for interfaces with no dependencies on any other types.
+   * ```ts
+   * schemaBuilder.interface({
+   *   // name of the interface
+   *   Animal: {
+   *     // optionally specify names of other interfaces this interface extends
+   *     extends: ['NameOfOtherInterface']
+   *     // fields of the interface
+   *     fields: {
+   *       // scalar field
+   *       id: gql.ID["!"],
+   *
+   *       // refer to 'self', i.e. the Animal type
+   *       self: gql.Self
+   *     }
+   *   }
+   * })
+   * ```
+   *
+   * Option 2 - a function that accepts a reference to the other types in the schema.
+   * ```ts
+   * schemaBuilder.interface(_ => ({
+   *   Animal: {
+   *     // fields of the interface
+   *     fields: {
+   *       // scalar field
+   *       id: gql.ID["!"],
+   *
+   *       // reference to another type in the schema
+   *       otherType: _.OtherType
+   *
+   *       // refer to 'self', i.e. the Animal type
+   *       self: gql.Self
+   *     }
+   *   }
+   * }))
+   * ```
+   * @param interfaceDefinitions interface object or a function returning interface definitions.
+   */
+  public interface<I extends InterfaceDefinitions<G>>(
+    interfaceDefinitions: RowLacks<I, keyof G> | ((schema: G) => I)
+  ): SchemaBuilder<G & {
     [ID in Extract<keyof I, string>]: InterfaceTypeNode<
       ID,
       (
@@ -51,13 +167,57 @@ export class SchemaBuilder<G extends GraphQLAST = {}> {
   }> {
     return new SchemaBuilder<any>({
       ...this.graph,
-      ...(Object.entries(typeof def === 'function' ? def(this.graph) : def).map(([ID, interfaceDef]) => ({
+      ...(Object.entries(typeof interfaceDefinitions === 'function' ? interfaceDefinitions(this.graph) : interfaceDefinitions).map(([ID, interfaceDef]) => ({
         [ID]: new InterfaceTypeNode(ID, interfaceDef.fields, interfaceDef.extends)
       })).reduce((a, b) => ({...a, ...b}), {}))
     }) as any;
   }
 
-  public type<I extends TypeDefinitions<G>>(def: RowLacks<I, keyof G> | ((schema: G) => I)): SchemaBuilder<G & {
+  /**
+   * Define a type.
+   *
+   * Option 1 - a literal object for types with no dependencies on any other types.
+   * ```ts
+   * schemaBuilder.type({
+   *   // name of the interface
+   *   Animal: {
+   *     // optionally specify names of interfaces this type implements
+   *     extends: ['NameOfOtherInterface']
+   *     // fields of the interface
+   *     fields: {
+   *       // scalar field
+   *       id: gql.ID["!"],
+   *
+   *       // refer to 'self', i.e. the Animal type
+   *       self: gql.Self
+   *     }
+   *   }
+   * })
+   * ```
+   *
+   * Option 2 - a function that accepts a reference to the other types in the schema.
+   * ```ts
+   * schemaBuilder.type(_ => ({
+   *   Animal: {
+   *     // fields of the interface
+   *     fields: {
+   *       // scalar field
+   *       id: gql.ID["!"],
+   *
+   *       // reference to another type in the schema
+   *       otherType: _.OtherType
+   *
+   *       // refer to 'self', i.e. the Animal type
+   *       self: gql.Self
+   *     }
+   *   }
+   * }))
+   * ```
+   * @param typeDefinitions type object or a function returning type definitions.
+   */
+  public type<I extends TypeDefinitions<G>>(
+    typeDefinitions: RowLacks<I, keyof G> | ((schema: G) => I)
+  ): SchemaBuilder<G & {
     [ID in keyof I]: ID extends string ? TypeNode<
       ID,
       I[ID]['fields'] extends (...args: any[]) => ReturnTypeNodes ?
@@ -68,13 +228,37 @@ export class SchemaBuilder<G extends GraphQLAST = {}> {
   }> {
     return new SchemaBuilder<any>({
       ...this.graph,
-      ...(Object.entries(typeof def === 'function' ? def(this.graph) : def).map(([ID, typeDef]) => ({
+      ...(Object.entries(typeof typeDefinitions === 'function' ? typeDefinitions(this.graph) : typeDefinitions).map(([ID, typeDef]) => ({
         [ID]: new TypeNode(ID, typeDef.fields, typeDef.implements)
       })).reduce((a, b) => ({...a, ...b}), {}))
     }) as any;
   }
 
-  public input<I extends InputTypeDefinitions>(def: RowLacks<I, keyof G> | ((schema: G) => I)): SchemaBuilder<G & {
+  /**
+   * Define an Input Type - a named type that is allowed in Function and Query parameters.
+   *
+   * ```ts
+   * schemaBuilder.input({
+   *   AnimalInput: {
+   *     name: gql.String['!']
+   *   }
+   * })
+   * ```
+   *
+   * Input types can be used as function arguments:
+   * ```ts
+   * schemaBuilder.type(_ => ({
+   *   Query: {
+   *     addAnimal: gql.Function({input: _.AnimalInput}, _.Animal['!'])
+   *   }
+   * }))
+   * ```
+   *
+   * @param inputDefinitions
+   */
+  public input<I extends InputTypeDefinitions>(
+    inputDefinitions: RowLacks<I, keyof G> | ((schema: G) => I)
+  ): SchemaBuilder<G & {
     [ID in keyof I]: ID extends string ?
       InputTypeNode<
         ID,
@@ -86,12 +270,23 @@ export class SchemaBuilder<G extends GraphQLAST = {}> {
   }> {
     return new SchemaBuilder({
       ...this.graph,
-      ...(Object.entries(typeof def === 'function' ? def(this.graph) : def).map(([ID, fields]) => ({
+      ...(Object.entries(typeof inputDefinitions === 'function' ? inputDefinitions(this.graph) : inputDefinitions).map(([ID, fields]) => ({
         [ID]: new InputTypeNode(ID, fields)
       })).reduce((a, b) => ({...a, ...b}), {}))
     }) as any;
   }
 
+  /**
+   * Define a Union type.
+   *
+   * ```ts
+   * schemaBuilder.union({
+   *   Animals: ['Dog', 'Cat']
+   * })
+   * ```
+   *
+   * @param union map of union types
+   */
   public union<U extends UnionDefinitions<G>>(union: U): SchemaBuilder<G & {
     [ID in keyof U]: ID extends string ? UnionTypeNode<ID, U[ID]> : never;
   }> {
@@ -103,6 +298,25 @@ export class SchemaBuilder<G extends GraphQLAST = {}> {
     }) as any;
   }
 
+  /**
+   * Define enum types.
+   *
+   * Note: remember to cast the object `as const` or else the literal values of the enum
+   * will not be caputured.
+   *
+   * ```ts
+   * export const schemaBuilder = new gql.SchemaBuilder()
+   *   .enum({
+   *     Direction: {
+   *       UP: 'UP',
+   *       DOWN: 'DOWN',
+   *       LEFT: 'LEFT',
+   *       RIGHT: 'RIGHT',
+   *     }
+   *   } as const); // remember to specify as const
+   * ```
+   * @param definitions enum definitions
+   */
   public enum<D extends EnumDefinitions>(definitions: D): SchemaBuilder<G & {
     [ID in keyof D]: ID extends string ? EnumTypeNode<ID, D[ID]> : never;
   }> {

@@ -4,56 +4,116 @@ import { GqlResult, GqlResultType, Selector } from './selector';
 import { inputTypeNode } from './to-graphql';
 import { Value } from './value';
 
+/**
+ * Type-safe interface for compiling GraphQL queries.
+ */
 export class QueryCompiler<G extends GraphQLAST, Root extends TypeNode> {
   public readonly rootBuilder: SelectionSetBuilderType;
 
   constructor(
+    /**
+     * GraphQL type-system.
+     */
     public readonly graph: G,
+    /**
+     * Root type of the query/mutation API.
+     */
     public readonly root: Root
   ) {
     assertIsTypeNode(root);
     this.rootBuilder = parseNode(graph, root);
   }
 
+  /**
+   * Compiles an anonymous query.
+   *
+   * ```ts
+   * compiler.compiler(root => root
+   *   .id()
+   * );
+   * ```
+   * @param query function which builds the query.
+   */
   public compile<
-    U extends GqlQueryResult
+    Result extends GqlQueryResult
   >(
-    query: (i: GqlRoot<G, Root>) => U
-  ): CompiledGqlQuery<never, undefined, GetGqlQueryResult<U>>;
+    query: (i: GqlRoot<G, Root>) => Result
+  ): CompiledGqlQuery<never, undefined, GetGqlQueryResult<Result>>;
 
+  /**
+   * Compiles a named query.
+   *
+   * ```ts
+   * compiler.compiler('QueryName', root => root
+   *   .id()
+   * );
+   * ```
+   *
+   * @param queryName name of the query.
+   * @param query function which builds the query.
+   */
   public compile<
-    Name extends string,
-    U extends GqlQueryResult
+    QueryName extends string,
+    Result extends GqlQueryResult
   >(
-    queryName: Name,
-    query: (root: GqlRoot<G, Root>) => U
-  ): CompiledGqlQuery<undefined, GetGqlQueryResult<U>>;
+    queryName: QueryName,
+    query: (root: GqlRoot<G, Root>) => Result
+  ): CompiledGqlQuery<undefined, GetGqlQueryResult<Result>>;
 
+  /**
+   * Compiles an anonymous query that accepts input parameters.
+   *
+   * ```ts
+   * compiler.compiler({id: gql.ID['!']}, ({id}, root) => root
+   *   .getPerson({id}, person => person
+   *     .name()
+   *   )
+   * );
+   * ```
+   *
+   * @param parameters query parameters.
+   * @param query function which builds the query.
+   */
   public compile<
     Parameters extends RequestTypeNodes,
-    U extends GqlQueryResult
+    Result extends GqlQueryResult
   >(
     parameters: Parameters,
     query: (parameters: {
       [parameterName in keyof Parameters]: InputParameter<Extract<parameterName, string>, Parameters[parameterName]>
-    }, root: GqlRoot<G, Root>) => U
+    }, root: GqlRoot<G, Root>) => Result
   ): CompiledGqlQuery<{
     [parameterName in keyof Parameters]: Value<G, Parameters[parameterName]>;
-  }, GetGqlQueryResult<U>>;
+  }, GetGqlQueryResult<Result>>;
 
+  /**
+   * Compiles a named query that also accepts input parameters.
+   *
+   * ```ts
+   * compiler.compiler('QueryName', {id: gql.ID['!']}, ({id}, root) => root
+   *   .getPerson({id}, person => person
+   *     .name()
+   *   )
+   * );
+   * ```
+   *
+   * @param queryName query name
+   * @param parameters query parameters.
+   * @param query function which builds the query.
+   */
   public compile<
-    Name extends string,
+    QueryName extends string,
     Parameters extends RequestTypeNodes,
-    U extends GqlQueryResult
+    Result extends GqlQueryResult
   >(
-    name: Name,
+    queryName: QueryName,
     parameters: Parameters,
     query: (parameters: {
       [parameterName in keyof Parameters]: InputParameter<Extract<parameterName, string>, Parameters[parameterName]>
-    }, root: GqlRoot<G, Root>) => U
+    }, root: GqlRoot<G, Root>) => Result
   ): CompiledGqlQuery<{
     [parameterName in keyof Parameters]: Value<G, Parameters[parameterName]>;
-  }, GetGqlQueryResult<U>>;
+  }, GetGqlQueryResult<Result>>;
 
   public compile(a: any, b?: any, c?: any): CompiledGqlQuery<any, any> {
     let queryName: string | undefined;
@@ -150,9 +210,6 @@ type GetGqlQueryResult<U extends GqlQueryResult> =
   never
 ;
 
-export function isSelectionSetBuilder(a?: any): a is SelectionSetBuilder {
-  return Array.isArray(a?.$selections);
-}
 export interface SelectionSetBuilder {
   $selections: SelectionNode[];
 }
@@ -161,7 +218,7 @@ export interface SelectionSetBuilderType {
   prototype: any;
 }
 
-export function parseNode(
+function parseNode(
   graph: GraphQLAST,
   node: TypeNode | InterfaceTypeNode | UnionTypeNode
 ): SelectionSetBuilderType {
