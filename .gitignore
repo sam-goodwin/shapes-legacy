@@ -6,3 +6,7 @@ node_modules
 cdk.out
 .cdk.staging
 punchcard*.tgz
+packages/**/lib
+coverage
+packages/**/cjs
+packages/**/esm

@@ -1,4 +1,4 @@
-import { EnumType, GraphQLASTNode, GraphQLAST, GraphQLInputFields, GraphQLReturnFields, InputType, ReferenceType, ScalarType, SelfType, Type } from './ast';
+import { EnumType, GraphQLAST, GraphQLASTNode, GraphQLInputFields, GraphQLReturnFields, InputType, ReferenceType, ScalarType, SelfType, Type } from './ast';
 import { KeysOfType } from './util';
 
 export type Values<

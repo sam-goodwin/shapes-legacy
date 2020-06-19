@@ -27,8 +27,8 @@ export class GraphQLSchemaBuilder<G extends GraphQLAST = GraphQLAST> {
   }): GraphQLSchema<G, Q, M> {
     return {
       graph: this.graph,
-      query: props.query,
-      mutation: props.mutation!
+      mutation: props.mutation!,
+      query: props.query
     };
   }
 

@@ -1,5 +1,5 @@
+import { GraphQLAST, GraphQLReturnFields, InterfaceType, Type, assertIsTypeOrInterface, isPrimitiveType } from './ast';
 import { SelectionNode, SelectionSetNode } from 'graphql';
-import { assertIsTypeOrInterface, GraphQLAST, GraphQLReturnFields, InterfaceType, isPrimitiveType, Type } from './ast';
 
 const selections = Symbol.for('selections');
 
@@ -53,9 +53,10 @@ export function parseTree(
   };
 }
 
+// @ts-ignore
 function assertIsFunction(a: any): asserts a is (selector: any) => any {
   if (typeof a !== 'function') {
-    throw new Error('must be function');
+    throw new TypeError('must be function');
   }
 }
 
