@@ -10,7 +10,8 @@ export {
   String,
 } from './ast';
 
-export { QueryCompiler } from './query-compiler';
+export { Client } from './client';
+export { QueryCompiler } from './query';
 export { SchemaBuilder } from './schema';
 export {
   printGraphQLSchema,

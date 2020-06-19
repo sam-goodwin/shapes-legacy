@@ -7,12 +7,12 @@ const schema = schemaBuilder
   .type(_ => ({
     Query: {
       fields: {
-        getAnimal: gql.Function({id: gql.ID["!"]}, _.Animal),
+        getAnimal: gql.Function({ id: gql.ID["!"] }, _.Animal),
       }
     },
     Mutation: {
       fields: {
-        addAnimal: gql.Function({id: gql.ID["!"]}, _.Animal["!"])
+        addAnimal: gql.Function({ id: gql.ID["!"] }, _.Animal["!"])
       }
     }
   }))
@@ -22,20 +22,32 @@ const schema = schemaBuilder
   })
 ;
 
-const compiler = new gql.QueryCompiler(schema);
+const client = new gql.Client({
+  schema,
+  apiUrl: 'http://example.com'
+});
 
 it('should', () => {
-  const query = compiler.compileQuery('A', {id: gql.ID["!"]}, ({id}, root) => {
-    console.log(id, root);
-    return root.getAnimal({id}, person => person
+  const query = client.queryCompiler.compile('A', { id: gql.ID["!"] }, ({ id }, root) => root
+    .getAnimal({ id }, person => person
       .id()
       .name()
+      .bool()
+      .float()
+      .int()
+      .list()
+      .parent(parent => parent
+        .id())
+      .fn({ a: 'a' }, animal => animal
+        .id())
+      .complexList(s => s
+        .id())
       .$on('Dog', dog => dog
         .bark())
       .$on('Bird', bird => bird
         .tweets())
-    );
-  });
+    )
+  );
   expect(query.operationDefinitionNode).toEqual({
     "kind": "OperationDefinition",
     "name": {
@@ -75,6 +87,13 @@ it('should', () => {
                 "kind": "Field",
                 "name": {
                   "kind": "Name",
+                  "value": "__typename",
+                }
+              },
+              {
+                "kind": "Field",
+                "name": {
+                  "kind": "Name",
                   "value": "id",
                 },
               },
@@ -89,8 +108,120 @@ it('should', () => {
                 "kind": "Field",
                 "name": {
                   "kind": "Name",
-                  "value": "__typename"
-                }
+                  "value": "bool",
+                },
+              },
+              {
+                "kind": "Field",
+                "name": {
+                  "kind": "Name",
+                  "value": "float",
+                },
+              },
+              {
+                "kind": "Field",
+                "name": {
+                  "kind": "Name",
+                  "value": "int",
+                },
+              },
+              {
+                "kind": "Field",
+                "name": {
+                  "kind": "Name",
+                  "value": "list",
+                },
+              },
+              {
+                "kind": "Field",
+                "name": {
+                  "kind": "Name",
+                  "value": "parent",
+                },
+                "selectionSet": {
+                  "kind": "SelectionSet",
+                  "selections": [
+                    {
+                      "kind": "Field",
+                      "name": {
+                        "kind": "Name",
+                        "value": "__typename",
+                      }
+                    },
+                    {
+                      "kind": "Field",
+                      "name": {
+                        "kind": "Name",
+                        "value": "id",
+                      },
+                    },
+                  ],
+                },
+              },
+              {
+                "arguments": [
+                  {
+                    "kind": "Argument",
+                    "name": {
+                      "kind": "Name",
+                      "value": "a",
+                    },
+                    "value": {
+                      "kind": "StringValue",
+                      "value": "a",
+                    },
+                  },
+                ],
+                "kind": "Field",
+                "name": {
+                  "kind": "Name",
+                  "value": "fn",
+                },
+                "selectionSet": {
+                  "kind": "SelectionSet",
+                  "selections": [
+                    {
+                      "kind": "Field",
+                      "name": {
+                        "kind": "Name",
+                        "value": "__typename",
+                      }
+                    },
+                    {
+                      "kind": "Field",
+                      "name": {
+                        "kind": "Name",
+                        "value": "id",
+                      },
+                    },
+                  ],
+                },
+              },
+              {
+                "kind": "Field",
+                "name": {
+                  "kind": "Name",
+                  "value": "complexList",
+                },
+                "selectionSet": {
+                  "kind": "SelectionSet",
+                  "selections": [
+                    {
+                      "kind": "Field",
+                      "name": {
+                        "kind": "Name",
+                        "value": "__typename",
+                      }
+                    },
+                    {
+                      "kind": "Field",
+                      "name": {
+                        "kind": "Name",
+                        "value": "id",
+                      },
+                    },
+                  ],
+                },
               },
               {
                 "kind": "InlineFragment",

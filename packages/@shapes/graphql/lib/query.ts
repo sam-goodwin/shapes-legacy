@@ -1,49 +1,47 @@
-import { ArgumentNode, FieldNode, InlineFragmentNode, ObjectFieldNode, OperationDefinitionNode, SelectionNode, SelectionSetNode, ValueNode, VariableDefinitionNode } from 'graphql';
+import { ArgumentNode, FieldNode, InlineFragmentNode, OperationDefinitionNode, SelectionNode, SelectionSetNode, ValueNode, VariableDefinitionNode } from 'graphql';
 import { assertIsInterfaceTypeNode, assertIsTypeNode, assertIsTypeOrInterfaceNode, GraphQLAST, GraphQLNode, InputParameter, InterfaceTypeNode, isFunctionNode, isInputParameter, isInputTypeNode, isInterfaceTypeNode, isListTypeNode, isPrimitiveType, isReferenceTypeNode, isRequestTypeNode, isScalarTypeNode, isSelfTypeNode, isTypeNode, isUnionTypeNode, RequestTypeNode, RequestTypeNodes, ReturnTypeNode, ReturnTypeNodes, TypeNode, UnionTypeNode } from './ast';
-import { Schema } from './schema';
 import { GqlResult, GqlResultType, Selector } from './selector';
 import { inputTypeNode } from './to-graphql';
 import { Value } from './value';
 
-export class QueryCompiler<S extends Schema> {
-  public readonly queryRoot: SelectionSetBuilderType;
+export class QueryCompiler<G extends GraphQLAST, Root extends TypeNode> {
+  public readonly rootBuilder: SelectionSetBuilderType;
 
-  constructor(public readonly schema: S) {
-    const queryRoot = schema.graph[schema.query];
-    if (queryRoot === undefined) {
-      throw new Error(`type '${schema.query}' does not exist in schema`);
-    }
-    assertIsTypeNode(queryRoot);
-    this.queryRoot = parseTypeInterfaceUnionNode(schema.graph, queryRoot);
+  constructor(
+    public readonly graph: G,
+    public readonly root: Root
+  ) {
+    assertIsTypeNode(root);
+    this.rootBuilder = parseNode(graph, root);
   }
 
-  public compileQuery<
+  public compile<
     U extends GqlQueryResult
   >(
-    query: (i: GqlRoot<S['graph'], Extract<S['graph'][S['query']], TypeNode>>) => U
+    query: (i: GqlRoot<G, Root>) => U
   ): CompiledGqlQuery<never, undefined, GetGqlQueryResult<U>>;
 
-  public compileQuery<
+  public compile<
     Name extends string,
     U extends GqlQueryResult
   >(
     queryName: Name,
-    query: (root: GqlRoot<S['graph'], Extract<S['graph'][S['query']], TypeNode>>) => U
+    query: (root: GqlRoot<G, Root>) => U
   ): CompiledGqlQuery<undefined, GetGqlQueryResult<U>>;
 
-  public compileQuery<
+  public compile<
     Parameters extends RequestTypeNodes,
     U extends GqlQueryResult
   >(
     parameters: Parameters,
     query: (parameters: {
       [parameterName in keyof Parameters]: InputParameter<Extract<parameterName, string>, Parameters[parameterName]>
-    }, root: GqlRoot<S['graph'], Extract<S['graph'][S['query']], TypeNode>>) => U
+    }, root: GqlRoot<G, Root>) => U
   ): CompiledGqlQuery<{
-    [parameterName in keyof Parameters]: Value<S['graph'], Parameters[parameterName]>;
+    [parameterName in keyof Parameters]: Value<G, Parameters[parameterName]>;
   }, GetGqlQueryResult<U>>;
 
-  public compileQuery<
+  public compile<
     Name extends string,
     Parameters extends RequestTypeNodes,
     U extends GqlQueryResult
@@ -52,12 +50,12 @@ export class QueryCompiler<S extends Schema> {
     parameters: Parameters,
     query: (parameters: {
       [parameterName in keyof Parameters]: InputParameter<Extract<parameterName, string>, Parameters[parameterName]>
-    }, root: GqlRoot<S['graph'], Extract<S['graph'][S['query']], TypeNode>>) => U
+    }, root: GqlRoot<G, Root>) => U
   ): CompiledGqlQuery<{
-    [parameterName in keyof Parameters]: Value<S['graph'], Parameters[parameterName]>;
+    [parameterName in keyof Parameters]: Value<G, Parameters[parameterName]>;
   }, GetGqlQueryResult<U>>;
 
-  public compileQuery(a: any, b?: any, c?: any): CompiledGqlQuery<any, any> {
+  public compile(a: any, b?: any, c?: any): CompiledGqlQuery<any, any> {
     let queryName: string | undefined;
     let parameters: Record<string, RequestTypeNode> = {};
     let query: (((s: SelectionSetBuilder) => SelectionSetBuilder) | ((p: any, s: SelectionSetBuilder) => SelectionSetBuilder));
@@ -82,8 +80,8 @@ export class QueryCompiler<S extends Schema> {
     })).reduce((a, b) => ({...a, ...b}));
 
     const queryResult: SelectionSetBuilder = Object.keys(parameters).length === 0 ?
-      (query as any)(new (this.queryRoot)([])) :
-      (query as any)(inputParameters, new (this.queryRoot)([]))
+      (query as any)(new (this.rootBuilder)([])) :
+      (query as any)(inputParameters, new (this.rootBuilder)([]))
     ;
     const selectionSet: SelectionSetNode = {
       kind: 'SelectionSet',
@@ -163,12 +161,24 @@ export interface SelectionSetBuilderType {
   prototype: any;
 }
 
-export function parseTypeInterfaceUnionNode(
+export function parseNode(
   graph: GraphQLAST,
   node: TypeNode | InterfaceTypeNode | UnionTypeNode
 ): SelectionSetBuilderType {
   class Builder {
-    constructor(public readonly $selections: SelectionNode[]) {}
+    constructor(public readonly $selections: SelectionNode[]) {
+      if (this.$selections.length === 0) {
+        if (isUnionTypeNode(node) || isInterfaceTypeNode(node)) {
+          this.$selections.push({
+            kind: 'Field',
+            name: {
+              kind: 'Name',
+              value: '__typename'
+            },
+          });
+        }
+      }
+    }
   }
   if (isUnionTypeNode(node)) {
     const unionTypes = node.union.map(u => {
@@ -193,7 +203,7 @@ export function parseTypeInterfaceUnionNode(
 function parseOnSelector(graph: GraphQLAST, builder: SelectionSetBuilderType, types: TypeNode[], alias: string, type: 'union' | 'interface') {
   const unionTypes = types.map(type => {
     return {
-      [type.id]: parseTypeInterfaceUnionNode(graph, type)
+      [type.id]: parseNode(graph, type)
     };
   }).reduce((a, b) => ({...a, ...b}));
 
@@ -205,14 +215,7 @@ function parseOnSelector(graph: GraphQLAST, builder: SelectionSetBuilderType, ty
     if (unionType === undefined) {
       throw new Error(`type '${id}' does not ${type === 'union' ? 'exist in' : 'implement'} '${alias}'`);
     }
-    return new builder(this.$selections.concat([
-      ...(this.$selections.find(s => s.kind === 'Field' && s.name.value === '__typename') === undefined ? [{
-        kind: 'Field',
-        name: {
-          kind: 'Name',
-          value: '__typename'
-        },
-      } as const] : []), {
+    return new builder(this.$selections.concat([{
       kind: 'InlineFragment',
       typeCondition: {
         kind: 'NamedType',
@@ -257,7 +260,7 @@ function parseFieldSelector(
       name
     } as FieldNode);
   } else if (isListTypeNode(field)) {
-    const item = parseTypeInterfaceUnionNode(graph, field.item as TypeNode);
+    const item = isSelfTypeNode(field.item) ? self : parseNode(graph, field.item as TypeNode);
     return (itemSelector: (s: SelectionSetBuilder) => SelectionSetBuilder) => ({
       kind: 'Field',
       name,
@@ -269,7 +272,17 @@ function parseFieldSelector(
   } else if (isFunctionNode(field)) {
     let returnSelector: SelectionSetBuilderType;
     if (isTypeNode(field.returns) || isInterfaceTypeNode(field.returns) || isUnionTypeNode(field.returns)) {
-      returnSelector = parseTypeInterfaceUnionNode(graph, field.returns);
+      returnSelector = parseNode(graph, field.returns);
+    } else if (isSelfTypeNode(field.returns)) {
+      returnSelector = self;
+    } else if (isReferenceTypeNode(field.returns)) {
+      const ref = graph[field.returns.id];
+      if (ref === undefined) {
+        throw new Error(`reference to ${field.returns.id} is not found in schema`);
+      }
+      if (isTypeNode(ref) || isInterfaceTypeNode(ref) || isUnionTypeNode(ref)) {
+        returnSelector = parseNode(graph, ref);
+      }
     }
 
     return (args: Record<string, any>, selector?: (b: SelectionSetBuilder) => SelectionSetBuilder) => {
@@ -314,7 +327,7 @@ function parseFieldSelector(
     let type: SelectionSetBuilderType;
     return (selector: (s: SelectionSetBuilder) => SelectionSetBuilder) => {
       if (!type) {
-        type = parseTypeInterfaceUnionNode(graph, field);
+        type = parseNode(graph, field);
       }
       return {
         kind: 'Field',

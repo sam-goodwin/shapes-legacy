@@ -20,6 +20,7 @@ export const schemaBuilder = new gql.SchemaBuilder()
         float: gql.Float,
         bool: gql.Bool,
         list: gql.List(gql.Int),
+        complexList: gql.List(gql.Self),
         fn: gql.Function({a: gql.ID}, gql.Self["!"])
       }
     }

@@ -39,6 +39,7 @@ interface Animal {
   float: Float
   bool: Boolean
   list: [Int]
+  complexList: [Animal]
   fn(a: ID): Animal!
 }
 
@@ -103,6 +104,7 @@ interface Animal {
   float: Float
   bool: Boolean
   list: [Int]
+  complexList: [Animal]
   fn(a: ID): Animal!
 }
 
