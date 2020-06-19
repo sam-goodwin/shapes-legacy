@@ -1,8 +1,8 @@
 import { ArgumentNode, FieldNode, InlineFragmentNode, OperationDefinitionNode, SelectionNode, SelectionSetNode, ValueNode, VariableDefinitionNode } from 'graphql';
-import { GraphQLAST, GraphQLNode, InputParameter, InterfaceTypeNode, RequestTypeNode, RequestTypeNodes, ReturnTypeNode, ReturnTypeNodes, TypeNode, UnionTypeNode, assertIsInterfaceTypeNode, assertIsTypeNode, assertIsTypeOrInterfaceNode, isFunctionNode, isInputParameter, isInputTypeNode, isInterfaceTypeNode, isListTypeNode, isPrimitiveType, isReferenceTypeNode, isRequestTypeNode, isScalarTypeNode, isSelfTypeNode, isTypeNode, isUnionTypeNode } from './ast';
 import { GqlResult, GqlResultType, Selector } from './selector';
-import { inputTypeNode } from './to-graphql';
+import { GraphQLAST, GraphQLNode, InputParameter, InterfaceTypeNode, RequestTypeNode, RequestTypeNodes, ReturnTypeNode, ReturnTypeNodes, TypeNode, UnionTypeNode, assertIsInterfaceTypeNode, assertIsTypeNode, assertIsTypeOrInterfaceNode, isFunctionNode, isInputParameter, isInputTypeNode, isInterfaceTypeNode, isListTypeNode, isPrimitiveType, isReferenceTypeNode, isRequestTypeNode, isScalarTypeNode, isSelfTypeNode, isTypeNode, isUnionTypeNode } from './ast';
 import { Value } from './value';
+import { inputTypeNode } from './to-graphql';
 
 /**
  * Type-safe interface for compiling GraphQL queries.
@@ -32,7 +32,7 @@ export class QueryCompiler<G extends GraphQLAST, Root extends TypeNode> {
    *   .id()
    * );
    * ```
-   * @param query function which builds the query.
+   * @param query - function which builds the query.
    */
   public compile<
     Result extends GqlQueryResult
@@ -49,8 +49,8 @@ export class QueryCompiler<G extends GraphQLAST, Root extends TypeNode> {
    * );
    * ```
    *
-   * @param queryName name of the query.
-   * @param query function which builds the query.
+   * @param queryName - name of the query.
+   * @param query - function which builds the query.
    */
   public compile<
     QueryName extends string,
@@ -71,8 +71,8 @@ export class QueryCompiler<G extends GraphQLAST, Root extends TypeNode> {
    * );
    * ```
    *
-   * @param parameters query parameters.
-   * @param query function which builds the query.
+   * @param parameters - query parameters.
+   * @param query - function which builds the query.
    */
   public compile<
     Parameters extends RequestTypeNodes,
@@ -97,9 +97,9 @@ export class QueryCompiler<G extends GraphQLAST, Root extends TypeNode> {
    * );
    * ```
    *
-   * @param queryName query name
-   * @param parameters query parameters.
-   * @param query function which builds the query.
+   * @param queryName - query name
+   * @param parameters - query parameters.
+   * @param query - function which builds the query.
    */
   public compile<
     QueryName extends string,
@@ -115,6 +115,7 @@ export class QueryCompiler<G extends GraphQLAST, Root extends TypeNode> {
     [parameterName in keyof Parameters]: Value<G, Parameters[parameterName]>;
   }, GetGqlQueryResult<Result>>;
 
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   public compile(a: any, b?: any, c?: any): CompiledGqlQuery<any, any> {
     let queryName: string | undefined;
     let parameters: Record<string, RequestTypeNode> = {};
@@ -265,9 +266,6 @@ function parseOnSelector(graph: GraphQLAST, builder: SelectionSetBuilderType, ty
   }).reduce((a, b) => ({...a, ...b}));
 
   return function(this: InstanceType<SelectionSetBuilderType>, id: string, selector: (builder: any) => SelectionSetBuilder) {
-    if (typeof id !== 'string') {
-      throw new TypeError(`type name must be a string, got: '${id}'`);
-    }
     const unionType = unionTypes[id];
     if (unionType === undefined) {
       throw new Error(`type '${id}' does not ${type === 'union' ? 'exist in' : 'implement'} '${alias}'`);
@@ -380,7 +378,7 @@ function parseFieldSelector(
     });
   } else if (isReferenceTypeNode(field)) {
     return parseFieldSelector(graph, self, graph[field.id] as any /*todo*/, fieldName);
-  } else if (isTypeNode(field) || isInterfaceTypeNode(field) || isUnionTypeNode(field)) {
+  } else {
     let type: SelectionSetBuilderType;
     return (selector: (s: SelectionSetBuilder) => SelectionSetBuilder) => {
       if (!type) {
@@ -396,7 +394,6 @@ function parseFieldSelector(
       };
     };
   }
-  throw new Error(`cannot parse field selector for field type: ${(field as any).type}`);
 }
 
 function valueNode<
@@ -409,7 +406,7 @@ function valueNode<
     };
   }
   if (argType.required === true && value === undefined) {
-    throw new Error(`argument is required: ${argType}`);
+    throw new Error(`argument is required: ${argType.id!}`);
   }
   if (isInputParameter(value)) {
     return {
@@ -441,6 +438,7 @@ function valueNode<
         value: value as boolean
       };
     } else {
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       throw new Error(`unknown scalar type: ${argType.id}`);
     }
   } else if (argType.type === 'enum') {

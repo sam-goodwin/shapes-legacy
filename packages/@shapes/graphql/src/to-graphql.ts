@@ -5,7 +5,7 @@ import { Schema } from './schema';
 /**
  * Prints a Schema in the GraphQL schema format.
  *
- * @param schema schema to print
+ * @param schema - schema to print
  */
 export function printGraphQLSchema(schema: Schema): string {
   return gql.printSchema(gql.buildASTSchema(toGraphQLAST(schema)));
@@ -14,13 +14,13 @@ export function printGraphQLSchema(schema: Schema): string {
 /**
  * Convert a Schema to GraphQL AST.
  *
- * @param schema schema to convert.
+ * @param schema - schema to convert.
  */
 export function toGraphQLAST(schema: Schema): gql.DocumentNode {
   return {
     kind: 'Document',
     definitions: [
-      ...Object.values(schema.graph).map(typeDefinitionNode),
+      ...Object.values(schema.graph).map((t) => typeDefinitionNode(t)),
       schemaDefinition(schema),
     ]
   };
@@ -66,10 +66,8 @@ export function typeDefinitionNode(node: GraphQLNode): gql.TypeDefinitionNode {
     return {
       kind: 'EnumTypeDefinition',
       name: nameNode(node.id),
-      // @ts-ignore
-      values: Object.entries(node.values).map(([name, value]) => ({
+      values: Object.values(node.values).map((value) => ({
         kind: 'EnumValueDefinition',
-        // @ts-ignore
         name: nameNode(value)
       }))
     } as gql.EnumTypeDefinitionNode;

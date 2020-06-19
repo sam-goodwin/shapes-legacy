@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { UnionToIntersection } from './util';
 
 export function isGraphQLASTNode(a: any): a is GraphQLNode {
@@ -127,7 +128,6 @@ export type RequestTypeNode = (
 
 class BaseType {
   public readonly required: boolean = false;
-  // @ts-ignore
   public get ['!'](): this & {required: true;} {
     return {
       ...this,

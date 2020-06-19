@@ -1,8 +1,8 @@
-import { DocumentNode } from 'graphql';
-import { TypeNode } from './ast';
-import { GqlRoot, QueryCompiler } from './query';
-import { Schema } from './schema';
 import { GqlResult, GqlResultType } from './selector';
+import { GqlRoot, QueryCompiler } from './query';
+import { DocumentNode } from 'graphql';
+import { Schema } from './schema';
+import { TypeNode } from './ast';
 
 export type RequestApi = (url: string, query: string | DocumentNode) => any;
 

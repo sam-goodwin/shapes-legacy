@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-types */
 import { FunctionNode, GraphQLAST, GraphQLNode, InputParameter, InterfaceTypeNode, ListTypeNode, PrimtiveTypeNode, ReferenceTypeNode, RequestTypeNodes, ReturnTypeNodes, SelfTypeNode, TypeNode, UnionTypeNode } from './ast';
 import { Value } from './value';
 

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-types */
+/* eslint-disable tsdoc/syntax */
 import { EnumTypeNode, GraphQLAST, InputTypeNode, InterfaceTypeNode, RequestTypeNodes, ReturnTypeNodes, TypeNode, UnionTypeNode } from './ast';
 import { RowLacks } from './util';
 
@@ -52,7 +54,7 @@ export class SchemaBuilder<G extends GraphQLAST = {}> {
    * })
    * ```
    *
-   * @param props specify the root types for query and mutations.
+   * @param props - specify the root types for query and mutations.
    */
   public build<
     Q extends keyof G,
@@ -101,7 +103,7 @@ export class SchemaBuilder<G extends GraphQLAST = {}> {
    *   }))
    * ```
    *
-   * @param schema other GraphQL schema to import.
+   * @param schema - other GraphQL schema to import.
    */
   public import<S2 extends {graph: GraphQLAST}>(schema: S2): SchemaBuilder<G & S2['graph']> {
     return new SchemaBuilder({
@@ -150,7 +152,7 @@ export class SchemaBuilder<G extends GraphQLAST = {}> {
    *   }
    * }))
    * ```
-   * @param interfaceDefinitions interface object or a function returning interface definitions.
+   * @param interfaceDefinitions - interface object or a function returning interface definitions.
    */
   public interface<I extends InterfaceDefinitions<G>>(
     interfaceDefinitions: RowLacks<I, keyof G> | ((schema: G) => I)
@@ -213,7 +215,7 @@ export class SchemaBuilder<G extends GraphQLAST = {}> {
    *   }
    * }))
    * ```
-   * @param typeDefinitions type object or a function returning type definitions.
+   * @param typeDefinitions - type object or a function returning type definitions.
    */
   public type<I extends TypeDefinitions<G>>(
     typeDefinitions: RowLacks<I, keyof G> | ((schema: G) => I)
@@ -254,7 +256,7 @@ export class SchemaBuilder<G extends GraphQLAST = {}> {
    * }))
    * ```
    *
-   * @param inputDefinitions
+   * @param inputDefinitions -
    */
   public input<I extends InputTypeDefinitions>(
     inputDefinitions: RowLacks<I, keyof G> | ((schema: G) => I)
@@ -285,7 +287,7 @@ export class SchemaBuilder<G extends GraphQLAST = {}> {
    * })
    * ```
    *
-   * @param union map of union types
+   * @param union - map of union types
    */
   public union<U extends UnionDefinitions<G>>(union: U): SchemaBuilder<G & {
     [ID in keyof U]: ID extends string ? UnionTypeNode<ID, U[ID]> : never;
@@ -315,7 +317,7 @@ export class SchemaBuilder<G extends GraphQLAST = {}> {
    *     }
    *   } as const); // remember to specify as const
    * ```
-   * @param definitions enum definitions
+   * @param definitions - enum definitions
    */
   public enum<D extends EnumDefinitions>(definitions: D): SchemaBuilder<G & {
     [ID in keyof D]: ID extends string ? EnumTypeNode<ID, D[ID]> : never;
