@@ -25,7 +25,7 @@ export const schemaBuilder = new gql.SchemaBuilder()
       }
     }
   })
-  .type(_ => ({
+  .type((_) => ({
     Dog: {
       implements: ['Animal'],
       fields: {

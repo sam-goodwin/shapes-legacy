@@ -5,7 +5,7 @@ import { schemaBuilder } from './schema';
 
 it('should synthesize GraphQL schema with common names', () => {
   const schema = schemaBuilder
-    .type(_ => ({
+    .type((_) => ({
       Query: {
         fields: {
           getAnimal: gql.Function({id: gql.ID["!"]}, _.Animal),
@@ -65,7 +65,7 @@ type Query {
 
 it('should synthesize GraphQL schema with un-common names', () => {
   const schema = schemaBuilder
-    .type(_ => ({
+    .type((_) => ({
       Query2: {
         fields: {
           getAnimal: gql.Function({id: gql.ID["!"]}, _.Animal),

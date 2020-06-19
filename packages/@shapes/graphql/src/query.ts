@@ -1,5 +1,5 @@
 import { ArgumentNode, FieldNode, InlineFragmentNode, OperationDefinitionNode, SelectionNode, SelectionSetNode, ValueNode, VariableDefinitionNode } from 'graphql';
-import { assertIsInterfaceTypeNode, assertIsTypeNode, assertIsTypeOrInterfaceNode, GraphQLAST, GraphQLNode, InputParameter, InterfaceTypeNode, isFunctionNode, isInputParameter, isInputTypeNode, isInterfaceTypeNode, isListTypeNode, isPrimitiveType, isReferenceTypeNode, isRequestTypeNode, isScalarTypeNode, isSelfTypeNode, isTypeNode, isUnionTypeNode, RequestTypeNode, RequestTypeNodes, ReturnTypeNode, ReturnTypeNodes, TypeNode, UnionTypeNode } from './ast';
+import { GraphQLAST, GraphQLNode, InputParameter, InterfaceTypeNode, RequestTypeNode, RequestTypeNodes, ReturnTypeNode, ReturnTypeNodes, TypeNode, UnionTypeNode, assertIsInterfaceTypeNode, assertIsTypeNode, assertIsTypeOrInterfaceNode, isFunctionNode, isInputParameter, isInputTypeNode, isInterfaceTypeNode, isListTypeNode, isPrimitiveType, isReferenceTypeNode, isRequestTypeNode, isScalarTypeNode, isSelfTypeNode, isTypeNode, isUnionTypeNode } from './ast';
 import { GqlResult, GqlResultType, Selector } from './selector';
 import { inputTypeNode } from './to-graphql';
 import { Value } from './value';
@@ -238,7 +238,7 @@ function parseNode(
     }
   }
   if (isUnionTypeNode(node)) {
-    const unionTypes = node.union.map(u => {
+    const unionTypes = node.union.map((u) => {
       const unionType = graph[u];
       if (unionType === undefined) {
         throw new Error(`Type '${u}' in Union '${node.id}' does not exist in GraphQL Schema`);
@@ -258,7 +258,7 @@ function parseNode(
 }
 
 function parseOnSelector(graph: GraphQLAST, builder: SelectionSetBuilderType, types: TypeNode[], alias: string, type: 'union' | 'interface') {
-  const unionTypes = types.map(type => {
+  const unionTypes = types.map((type) => {
     return {
       [type.id]: parseNode(graph, type)
     };
@@ -266,7 +266,7 @@ function parseOnSelector(graph: GraphQLAST, builder: SelectionSetBuilderType, ty
 
   return function(this: InstanceType<SelectionSetBuilderType>, id: string, selector: (builder: any) => SelectionSetBuilder) {
     if (typeof id !== 'string') {
-      throw new Error(`type name must be a string, got: '${id}'`);
+      throw new TypeError(`type name must be a string, got: '${id}'`);
     }
     const unionType = unionTypes[id];
     if (unionType === undefined) {
@@ -355,7 +355,7 @@ function parseFieldSelector(
             kind: 'Name',
             value: argumentName
           },
-          value: valueNode(graph, argumentType as any, argValue as any),
+          value: valueNode(graph, argumentType as any, argValue),
         } as ArgumentNode;
       });
 
@@ -452,7 +452,7 @@ function valueNode<
     if (isRequestTypeNode(graph, argType.item)) {
       return {
         kind: 'ListValue',
-        values: (value as any[]).map(v => valueNode(graph, argType.item as any, v))
+        values: (value as any[]).map((v) => valueNode(graph, argType.item as any, v))
       };
     }
   } else if (isInputTypeNode(argType)) {
@@ -491,7 +491,7 @@ function findFields(graph: GraphQLAST, type: TypeNode | InterfaceTypeNode): Retu
 
 function findTypes(graph: GraphQLAST, iface: InterfaceTypeNode): TypeNode[] {
   const ifaces = new Set(findInterfaces(graph, iface));
-  return Object.values(graph).map(type => {
+  return Object.values(graph).map((type) => {
     if (isTypeNode(type)) {
       for (const implementedIface of type.interfaces || []) {
         if (ifaces.has(implementedIface)) {
@@ -506,7 +506,7 @@ function findTypes(graph: GraphQLAST, iface: InterfaceTypeNode): TypeNode[] {
 function findInterfaces(graph: GraphQLAST, type: InterfaceTypeNode): string[] {
   return [
     type.id,
-    ...(type.interfaces ? type.interfaces.map(interfaceName => {
+    ...(type.interfaces ? type.interfaces.map((interfaceName) => {
       const iface = graph[interfaceName];
       assertIsInterfaceTypeNode(iface);
       return findInterfaces(graph, iface);

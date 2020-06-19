@@ -35,7 +35,7 @@ export type RootNode =
   | UnionTypeNode
 ;
 
-export interface GraphQLAST extends Record<string, RootNode> {}
+export type GraphQLAST = Record<string, RootNode>
 export namespace GraphQLAST {
   /**
    * Collect all nodes from the AST that are of a certain type.
@@ -335,7 +335,7 @@ export function isEnumTypeNode(node: any): node is EnumTypeNode {
   return node && node.type === 'enum';
 }
 
-export interface EnumValues extends Record<string, string> {}
+export type EnumValues = Record<string, string>
 
 export class EnumTypeNode<
   ID extends string = string,

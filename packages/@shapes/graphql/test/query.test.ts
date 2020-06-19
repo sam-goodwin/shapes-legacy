@@ -4,7 +4,7 @@ import * as gql from '../src';
 import { schemaBuilder } from './schema';
 
 const schema = schemaBuilder
-  .type(_ => ({
+  .type((_) => ({
     Query: {
       fields: {
         getAnimal: gql.Function({ id: gql.ID["!"] }, _.Animal),
@@ -29,22 +29,22 @@ const client = new gql.Client({
 
 it('should', () => {
   const query = client.queryCompiler.compile('A', { id: gql.ID["!"] }, ({ id }, root) => root
-    .getAnimal({ id }, person => person
+    .getAnimal({ id }, (person) => person
       .id()
       .name()
       .bool()
       .float()
       .int()
       .list()
-      .parent(parent => parent
+      .parent((parent) => parent
         .id())
-      .fn({ a: 'a' }, animal => animal
+      .fn({ a: 'a' }, (animal) => animal
         .id())
-      .complexList(s => s
+      .complexList((s) => s
         .id())
-      .$on('Dog', dog => dog
+      .$on('Dog', (dog) => dog
         .bark())
-      .$on('Bird', bird => bird
+      .$on('Bird', (bird) => bird
         .tweets())
     )
   );

@@ -1,5 +1,5 @@
 import * as gql from 'graphql';
-import { GraphQLNode, InterfaceTypeNode, isFunctionNode, RequestTypeNode, ReturnTypeNode, TypeNode } from './ast';
+import { GraphQLNode, InterfaceTypeNode, RequestTypeNode, ReturnTypeNode, TypeNode, isFunctionNode } from './ast';
 import { Schema } from './schema';
 
 /**
@@ -27,9 +27,9 @@ export function toGraphQLAST(schema: Schema): gql.DocumentNode {
 }
 
 export function schemaDefinition(schema: Schema): gql.SchemaDefinitionNode {
-  const operationTypes: gql.OperationTypeDefinitionNode[] = [operationTypeDefinition('query', schema.query as string)];
+  const operationTypes: gql.OperationTypeDefinitionNode[] = [operationTypeDefinition('query', schema.query)];
   if (schema.mutation !== undefined) {
-    operationTypes.push(operationTypeDefinition('mutation', schema.mutation as string));
+    operationTypes.push(operationTypeDefinition('mutation', schema.mutation));
   }
   return {
     kind: 'SchemaDefinition',
@@ -50,7 +50,7 @@ export function typeDefinitionNode(node: GraphQLNode): gql.TypeDefinitionNode {
     return {
       kind: node.type === 'interface' ? 'InterfaceTypeDefinition' : 'ObjectTypeDefinition',
       name: nameNode(node.id),
-      interfaces: interfaces === undefined ? undefined : interfaces.map(n => nameTypeNode(n as string)),
+      interfaces: interfaces === undefined ? undefined : interfaces.map((n) => nameTypeNode(n)),
       fields: Object.entries(node.fields).map(([fieldName, field]) => fieldDefinitionNode(node, fieldName, field))
     } as gql.TypeDefinitionNode;
   } else if (node.type === 'union') {
