@@ -205,7 +205,14 @@ function parseOnSelector(graph: GraphQLAST, builder: SelectionSetBuilderType, ty
     if (unionType === undefined) {
       throw new Error(`type '${id}' does not ${type === 'union' ? 'exist in' : 'implement'} '${alias}'`);
     }
-    return new builder(this.$selections.concat([{
+    return new builder(this.$selections.concat([
+      ...(this.$selections.find(s => s.kind === 'Field' && s.name.value === '__typename') === undefined ? [{
+        kind: 'Field',
+        name: {
+          kind: 'Name',
+          value: '__typename'
+        },
+      } as const] : []), {
       kind: 'InlineFragment',
       typeCondition: {
         kind: 'NamedType',

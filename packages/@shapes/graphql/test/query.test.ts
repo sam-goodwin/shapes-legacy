@@ -86,6 +86,13 @@ it('should', () => {
                 },
               },
               {
+                "kind": "Field",
+                "name": {
+                  "kind": "Name",
+                  "value": "__typename"
+                }
+              },
+              {
                 "kind": "InlineFragment",
                 "selectionSet": {
                   "kind": "SelectionSet",
