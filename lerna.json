@@ -1,8 +1,7 @@
 {
-  "lerna": "3.22.0",
-  "packages": [
-    "packages/**"
-  ],
+  "npmClient": "yarn",
+  "packages": ["packages/@shapes/*"],
   "rejectCycles": "true",
-  "version": "0.1.0"
+  "useWorkspaces": true,
+  "version": "independent"
 }

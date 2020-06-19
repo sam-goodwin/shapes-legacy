@@ -1,6 +1,6 @@
 import 'jest';
 
-import * as gql from '../lib';
+import * as gql from '../src';
 import { schemaBuilder } from './schema';
 
 it('should synthesize GraphQL schema with common names', () => {
@@ -43,22 +43,22 @@ interface Animal {
   fn(a: ID): Animal!
 }
 
-type Dog implements Animal {
-  bark: String!
-}
-
 type Bird implements Animal {
   tweets: Boolean!
 }
 
-union All = Dog | Bird
-
-type Query {
-  getAnimal(id: ID!): Animal
+type Dog implements Animal {
+  bark: String!
 }
+
+union All = Dog | Bird
 
 type Mutation {
   addAnimal(id: ID!): Animal!
+}
+
+type Query {
+  getAnimal(id: ID!): Animal
 }
 `);
 });

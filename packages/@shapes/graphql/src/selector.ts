@@ -1,4 +1,4 @@
-import { FunctionNode, GraphQLAST, GraphQLNode, InputParameter, InterfaceTypeNode, ListTypeNode, PrimtiveTypeNode, ReferenceTypeNode, RequestTypeNode, RequestTypeNodes, ReturnTypeNodes, SelfTypeNode, TypeNode, UnionTypeNode } from './ast';
+import { FunctionNode, GraphQLAST, GraphQLNode, InputParameter, InterfaceTypeNode, ListTypeNode, PrimtiveTypeNode, ReferenceTypeNode, RequestTypeNodes, ReturnTypeNodes, SelfTypeNode, TypeNode, UnionTypeNode } from './ast';
 import { Value } from './value';
 
 export const GQL = Symbol.for('@shapes/graphql');

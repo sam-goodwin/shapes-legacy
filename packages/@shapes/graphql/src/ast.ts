@@ -126,8 +126,8 @@ export type RequestTypeNode = (
 );
 
 class BaseType {
-  public readonly required: boolean;
-
+  public readonly required: boolean = false;
+  // @ts-ignore
   public get ['!'](): this & {required: true;} {
     return {
       ...this,

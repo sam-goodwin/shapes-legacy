@@ -57,7 +57,7 @@ export function typeDefinitionNode(node: GraphQLNode): gql.TypeDefinitionNode {
     return {
       kind: 'UnionTypeDefinition',
       name: nameNode(node.id),
-      types: node.union.map(value => ({
+      types: node.union.map((value) => ({
         kind: 'NamedType',
         name: nameNode(value)
       }))
@@ -66,8 +66,10 @@ export function typeDefinitionNode(node: GraphQLNode): gql.TypeDefinitionNode {
     return {
       kind: 'EnumTypeDefinition',
       name: nameNode(node.id),
+      // @ts-ignore
       values: Object.entries(node.values).map(([name, value]) => ({
         kind: 'EnumValueDefinition',
+        // @ts-ignore
         name: nameNode(value)
       }))
     } as gql.EnumTypeDefinitionNode;

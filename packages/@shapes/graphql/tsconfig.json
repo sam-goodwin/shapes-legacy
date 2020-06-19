@@ -1,31 +1,11 @@
 {
-  "compilerOptions": {
-    "target": "es2018",
-    "lib": [
-      "es5",
-      "es6",
-      "esnext.asynciterable"
-    ],
-    // "outDir": "./dist",
-    "downlevelIteration": true,
-    "module": "commonjs",
-    "strict": true,
-    "strictPropertyInitialization": false,
-    "strictNullChecks": true,
-    "noImplicitAny": true,
-    "noImplicitThis": true,
-    "alwaysStrict": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "inlineSourceMap": true,
-    // "sourceMap": true,
-    "declaration": true,
-    "esModuleInterop": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
-  },
-  "exclude": [
-    "node_modules",
-    // "./dist"
+  "files": [],
+  "references": [
+    {
+      "path": "./tsconfig.esm.json"
+    },
+    {
+      "path": "./tsconfig.cjs.json"
+    }
   ]
 }

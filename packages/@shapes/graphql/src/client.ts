@@ -37,11 +37,11 @@ export class Client<S extends Schema> {
   /**
    * Root of the Mutation API (if defined).
    */
-  public readonly mutationRootType: S['mutation'] extends keyof S['graph'] ? S['graph'][S['mutation']] : undefined;
+  public readonly mutationRootType: S['mutation'] extends keyof S['graph'] ? S['graph'][S['mutation']] : undefined = undefined as any;
   /**
    * Compiler for constructing type-safe GraphQL mutations (if defined).
    */
-  public readonly mutationCompiler: QueryCompiler<S['graph'], Extract<this['mutationRootType'], TypeNode>>;
+  public readonly mutationCompiler: S['mutation'] extends keyof S['graph'] ? QueryCompiler<S['graph'], Extract<this['mutationRootType'], TypeNode>> : undefined = undefined as any;
 
   constructor(props: ClientProps<S>) {
     this.schema = props.schema;
@@ -49,12 +49,12 @@ export class Client<S extends Schema> {
     this.queryCompiler = new QueryCompiler(this.schema.graph, this.queryRootType as any);
     if (this.schema.mutation) {
       this.mutationRootType = this.schema.graph[this.schema.mutation] as any;
-      this.mutationCompiler = new QueryCompiler(this.schema.graph, this.mutationRootType as any);
+      this.mutationCompiler = new QueryCompiler(this.schema.graph, this.mutationRootType as any) as any;
     }
   }
 
   public query<T extends GqlResult>(
-    query: (s: GqlRoot<S['graph'], Extract<this['queryRootType'], TypeNode>>) => T
+    _query: (s: GqlRoot<S['graph'], Extract<this['queryRootType'], TypeNode>>) => T
   ): Promise<GqlResultType<T>> {
     throw new Error('todo');
   }

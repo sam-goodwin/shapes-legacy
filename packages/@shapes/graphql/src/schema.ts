@@ -71,8 +71,8 @@ export class SchemaBuilder<G extends GraphQLAST = {}> {
   }): Schema<G, Q, M> {
     return {
       graph: this.graph,
-      query: props.query,
-      mutation: props.mutation!
+      mutation: props.mutation!,
+      query: props.query
     };
   }
 

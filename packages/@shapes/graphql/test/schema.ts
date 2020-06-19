@@ -1,4 +1,4 @@
-import * as gql from '../lib';
+import * as gql from '../src';
 
 export const schemaBuilder = new gql.SchemaBuilder()
   .enum({

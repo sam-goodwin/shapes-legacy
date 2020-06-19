@@ -1,6 +1,6 @@
 import 'jest';
 
-import * as gql from '../lib';
+import * as gql from '../src';
 import { schemaBuilder } from './schema';
 
 const schema = schemaBuilder
