@@ -18,6 +18,12 @@ npm install @shapes/graphql
 
 GraphQL Schemas are defined natively within TypeScript.
 
+<details>
+  <summary>Click to see demo!</summary>
+  
+  ![Query Building Demo](demo/schema.gif)
+</details>
+
 The `SchemaBuilder` type provides methods for incrementally defining types in a GraphQL schema. 
 
 ```ts
