@@ -3,6 +3,7 @@ import { GqlResult, GqlResultType, Selector } from './selector';
 import { GraphQLAST, GraphQLNode, InputParameter, InterfaceTypeNode, RequestTypeNode, RequestTypeNodes, ReturnTypeNode, ReturnTypeNodes, TypeNode, UnionTypeNode, assertIsInterfaceTypeNode, assertIsTypeNode, assertIsTypeOrInterfaceNode, isFunctionNode, isInputParameter, isInputTypeNode, isInterfaceTypeNode, isListTypeNode, isPrimitiveType, isReferenceTypeNode, isRequestTypeNode, isScalarTypeNode, isSelfTypeNode, isTypeNode, isUnionTypeNode } from './ast';
 import { Value } from './value';
 import { inputTypeNode } from './to-graphql';
+import { print } from 'graphql/language/printer';
 
 /**
  * Type-safe interface for compiling GraphQL queries.
@@ -171,7 +172,8 @@ export class QueryCompiler<G extends GraphQLAST, Root extends TypeNode> {
     };
 
     return {
-      operationDefinitionNode,
+      query: print(operationDefinitionNode),
+      queryAST: operationDefinitionNode,
       parseQueryResponse(json) {
         // TODO
         return json;
@@ -189,7 +191,8 @@ export interface CompiledGqlQuery<
   Output,
   OperationNode extends OperationDefinitionNode = OperationDefinitionNode
 > {
-  operationDefinitionNode: OperationNode;
+  query: string;
+  queryAST: OperationNode;
   parseQueryResponse(json: any): Output;
   serializeParameters(input: Parameters): any;
 }

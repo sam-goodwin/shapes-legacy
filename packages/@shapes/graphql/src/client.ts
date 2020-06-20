@@ -4,7 +4,13 @@ import { DocumentNode } from 'graphql';
 import { Schema } from './schema';
 import { TypeNode } from './ast';
 
-export type RequestApi = (url: string, query: string | DocumentNode) => any;
+// import { print } from 'graphql/language/printer';
+
+export type RequestApi = (
+  url: string,
+  query: string | DocumentNode,
+  variables?: Record<string, any>
+) => any;
 
 export interface ClientProps<S extends Schema> {
   /**
@@ -55,7 +61,38 @@ export class Client<S extends Schema> {
 
   public query<T extends GqlResult>(
     _query: (s: GqlRoot<S['graph'], Extract<this['queryRootType'], TypeNode>>) => T
-  ): Promise<GqlResultType<T>> {
+  ): Promise<GraphQLResponse<GqlResultType<T>>> {
+    // const {queryAST: operationDefinitionNode} = this.queryCompiler.compile(_query);
+    // const query = print(operationDefinitionNode);
+
     throw new Error('todo');
   }
+}
+
+// const defaultRequestApi: RequestApi = async (
+//   url,
+//   query,
+//   variables
+// ) => {
+//   await fetch('', {
+//     method: 'POST',
+//     headers: {
+//       'Content-Type': 'application/json',
+//       'Accept': 'application/json'
+//     },
+//   })
+// }
+
+export interface GraphQLError {
+  message: string;
+  locations: { line: number; column: number }[];
+  path: string[];
+}
+
+export interface GraphQLResponse<T> {
+  data?: T;
+  errors?: GraphQLError[];
+  extensions?: any;
+  status: number;
+  [key: string]: any;
 }

@@ -48,7 +48,37 @@ it('should', () => {
         .tweets())
     )
   );
-  expect(query.operationDefinitionNode).toEqual({
+  expect(query.query).toEqual(`query A($id: ID!) {
+  getAnimal(id: $id) {
+    __typename
+    id
+    name
+    bool
+    float
+    int
+    list
+    parent {
+      __typename
+      id
+    }
+    fn(a: "a") {
+      __typename
+      id
+    }
+    complexList {
+      __typename
+      id
+    }
+    ... on Dog {
+      bark
+    }
+    ... on Bird {
+      tweets
+    }
+  }
+}
+`)
+  expect(query.queryAST).toEqual({
     "kind": "OperationDefinition",
     "name": {
       "kind": "Name",
