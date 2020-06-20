@@ -48,14 +48,16 @@ export namespace GraphQLAST {
    */
   export type GetInheritedFields<G extends GraphQLAST, T extends keyof G> =
     G[T] extends TypeNode<string, infer F1, infer Implements> | InterfaceTypeNode<any, infer F1, infer Implements> ?
-      Implements extends (keyof G)[] ? UnionToIntersection<{
-        [k in Implements[Extract<keyof Implements, number>]]:
-          G[k] extends InterfaceTypeNode<any, infer F2, infer Extends> ?
-            Extends extends (keyof G)[] ?
-              F1 & F2 & GetInheritedFields<G, Extends[Extract<keyof Extends, number>]> :
+      Implements extends undefined ? F1 :
+      Implements extends (keyof G)[] ?
+        UnionToIntersection<{
+          [k in Implements[Extract<keyof Implements, number>]]:
+            G[k] extends InterfaceTypeNode<any, infer F2, infer Extends> ?
+              Extends extends undefined ? F1 :
+              Extends extends (keyof G)[] ? F1 & F2 & GetInheritedFields<G, Extends[Extract<keyof Extends, number>]> :
               F1 & F2 :
-          F1
-      }[Implements[Extract<keyof Implements, number>]]> :
+            F1
+        }[Implements[Extract<keyof Implements, number>]]> :
       F1 :
     never
   ;

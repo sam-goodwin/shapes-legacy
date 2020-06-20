@@ -1,6 +1,8 @@
-import * as gql from 'graphql';
+import type * as gql from 'graphql';
 import { GraphQLNode, InterfaceTypeNode, RequestTypeNode, ReturnTypeNode, TypeNode, isFunctionNode } from './ast';
 import { Schema } from './schema';
+
+import { print } from 'graphql/language/printer';
 
 /**
  * Prints a Schema in the GraphQL schema format.
@@ -8,7 +10,7 @@ import { Schema } from './schema';
  * @param schema - schema to print
  */
 export function printGraphQLSchema(schema: Schema): string {
-  return gql.printSchema(gql.buildASTSchema(toGraphQLAST(schema)));
+  return print(toGraphQLAST(schema));
 }
 
 /**

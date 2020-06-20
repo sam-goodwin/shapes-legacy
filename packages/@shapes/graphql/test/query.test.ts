@@ -76,8 +76,7 @@ it('should', () => {
       tweets
     }
   }
-}
-`)
+}`)
   expect(query.queryAST).toEqual({
     "kind": "OperationDefinition",
     "name": {

@@ -61,14 +61,14 @@ export type TypeSelector<
   Self extends keyof Graph,
   Graph extends GraphQLAST
 > =
-  Graph[Self] extends TypeNode<any, infer Fields> ?
-  TypeFieldSelectors<
-    Self,
-    Graph,
-    Fields & GraphQLAST.GetInheritedFields<Graph, Self>,
-    keyof (Fields & GraphQLAST.GetInheritedFields<Graph, Self>),
-    {}
-  > :
+  Graph[Self] extends TypeNode<any, infer Fields, any> ?
+    TypeFieldSelectors<
+      Self,
+      Graph,
+      Fields & GraphQLAST.GetInheritedFields<Graph, Self>,
+      keyof (Fields & GraphQLAST.GetInheritedFields<Graph, Self>),
+      {}
+    > :
   never
 ;
 
