@@ -21,7 +21,8 @@ export const schemaBuilder = new gql.SchemaBuilder()
         bool: gql.Bool,
         list: gql.List(gql.Int),
         complexList: gql.List(gql.Self),
-        fn: gql.Function({a: gql.ID}, gql.Self["!"])
+        fn: gql.Function({a: gql.ID}, gql.Self["!"]),
+        forwardCircular: gql.$('A')
       }
     }
   })
@@ -41,5 +42,18 @@ export const schemaBuilder = new gql.SchemaBuilder()
   }))
   .union({
     All: ['Dog', 'Bird']
+  })
+  .type({
+    A: {
+      fields: {
+        i: gql.String,
+        b: gql.$('B')
+      }
+    },
+    B: {
+      fields: {
+        a: gql.$('A')
+      }
+    }
   })
 ;

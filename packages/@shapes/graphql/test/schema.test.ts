@@ -41,6 +41,7 @@ interface Animal {
   list: [Int]
   complexList: [Animal]
   fn(a: ID): Animal!
+  forwardCircular: A
 }
 
 type Dog implements Animal {
@@ -52,6 +53,15 @@ type Bird implements Animal {
 }
 
 union All = Dog | Bird
+
+type A {
+  i: String
+  b: B
+}
+
+type B {
+  a: A
+}
 
 type Query {
   getAnimal(id: ID!): Animal

@@ -20,14 +20,14 @@ const schema = schemaBuilder
     query: 'Query',
     mutation: 'Mutation'
   })
-;
+  ;
 
 const client = new gql.Client({
   schema,
   apiUrl: 'http://example.com'
 });
 
-it('should', () => {
+it('should compile a query to GraphQL AST', () => {
   const query = client.queryCompiler.compile('A', { id: gql.ID["!"] }, ({ id }, root) => root
     .getAnimal({ id }, (person) => person
       .id()
@@ -42,6 +42,10 @@ it('should', () => {
         .id())
       .complexList((s) => s
         .id())
+      .forwardCircular((c) => c
+        .b((b) => b
+          .a((a) => a
+            .i())))
       .$on('Dog', (dog) => dog
         .bark())
       .$on('Bird', (bird) => bird
@@ -68,6 +72,13 @@ it('should', () => {
     complexList {
       __typename
       id
+    }
+    forwardCircular {
+      b {
+        a {
+          i
+        }
+      }
     }
     ... on Dog {
       bark
@@ -247,6 +258,48 @@ it('should', () => {
                       "name": {
                         "kind": "Name",
                         "value": "id",
+                      },
+                    },
+                  ],
+                },
+              }, {
+                "kind": "Field",
+                "name": {
+                  "kind": "Name",
+                  "value": "forwardCircular",
+                },
+                "selectionSet": {
+                  "kind": "SelectionSet",
+                  "selections": [
+                    {
+                      "kind": "Field",
+                      "name": {
+                        "kind": "Name",
+                        "value": "b",
+                      },
+                      "selectionSet": {
+                        "kind": "SelectionSet",
+                        "selections": [
+                          {
+                            "kind": "Field",
+                            "name": {
+                              "kind": "Name",
+                              "value": "a",
+                            },
+                            "selectionSet": {
+                              "kind": "SelectionSet",
+                              "selections": [
+                                {
+                                  "kind": "Field",
+                                  "name": {
+                                    "kind": "Name",
+                                    "value": "i",
+                                  },
+                                },
+                              ],
+                            },
+                          },
+                        ],
                       },
                     },
                   ],
