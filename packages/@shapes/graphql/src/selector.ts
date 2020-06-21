@@ -1,26 +1,12 @@
-// @ts-ignore
-import { FunctionType, GraphQLAST, GraphQLASTNode, GraphQLInputFields, GraphQLInputType, GraphQLReturnFields, InputParameter, InterfaceType, ListType, PrimtiveType, ReferenceType, SelfType, Type, UnionType, assertIsType } from './ast';
-import type { SelectionSetNode } from 'graphql';
+/* eslint-disable @typescript-eslint/ban-types */
+import { FunctionNode, GraphQLAST, GraphQLNode, InputParameter, InterfaceTypeNode, ListTypeNode, PrimtiveTypeNode, ReferenceTypeNode, RequestTypeNodes, ReturnTypeNodes, SelfTypeNode, TypeNode, UnionTypeNode } from './ast';
 import { Value } from './value';
-import { parseTree } from './query-interpreter';
-
-export function gqlSelector<Graph extends GraphQLAST, ID extends keyof Graph>(
-  graph: Graph,
-  root: ID
-): Selector<Graph, Graph[ID]> {
-  const rootNode = graph[root];
-  assertIsType(rootNode);
-  parseTree(graph, rootNode);
-
-  return undefined as any;
-}
 
 export const GQL = Symbol.for('@shapes/graphql');
 export type GQL = typeof GQL;
 export interface GqlResult<T = any> {
   [GQL]: {
     read(json: any): T;
-    ast: SelectionSetNode;
   }
 }
 
@@ -28,7 +14,7 @@ export type GqlResultType<T extends GqlResult> = ReturnType<T[GQL]['read']>;
 
 export type FunctionParameters<
   Graph extends GraphQLAST,
-  Parameters extends GraphQLInputFields,
+  Parameters extends RequestTypeNodes,
   Self extends keyof Graph = never
 > = {
   [parameterName in keyof Parameters]:
@@ -39,32 +25,32 @@ export type FunctionParameters<
 
 export type Selector<
   Graph extends GraphQLAST,
-  Node extends GraphQLASTNode,
+  Node extends GraphQLNode,
   Self extends keyof Graph = never
 > =
-  Node extends FunctionType<infer Args, infer Returns> ?
-    Returns extends PrimtiveType ?
+  Node extends FunctionNode<infer Args, infer Returns> ?
+    Returns extends PrimtiveTypeNode ?
       (args: FunctionParameters<Graph, Args, Self>) => GqlResult<Value<Graph, Returns, Self>> :
       <R extends GqlResult>(
         args: FunctionParameters<Graph, Args, Self>,
         selector: (s: Selector<Graph, Returns>) => R
       ) => R :
 
-  Node extends SelfType ? {
+  Node extends SelfTypeNode ? {
     [_ in keyof Node]: Selector<Graph, Graph[Self], Self>
   }[keyof Node] :
 
-  Node extends ReferenceType<infer ID> ? {
+  Node extends ReferenceTypeNode<infer ID> ? {
     [_ in keyof Node]: Selector<Graph, Graph[ID], ID>
   }[keyof Node] :
 
-  Node extends Type ?
+  Node extends TypeNode ?
     TypeSelector<Node['id'], Graph> :
 
-  Node extends InterfaceType | UnionType ?
+  Node extends InterfaceTypeNode | UnionTypeNode ?
     SubTypeSelector<Node['id'], Graph> :
 
-  Node extends ListType<infer I> ? <R extends GqlResult>(
+  Node extends ListTypeNode<infer I> ? <R extends GqlResult>(
     selector: (s: Selector<Graph, I, Self>) => R
   ) => GqlResult<GqlResultType<R>[]> :
 
@@ -75,21 +61,21 @@ export type TypeSelector<
   Self extends keyof Graph,
   Graph extends GraphQLAST
 > =
-  Graph[Self] extends Type<any, infer Fields> ?
-  TypeFieldSelectors<
-    Self,
-    Graph,
-    Fields & GraphQLAST.GetInheritedFields<Graph, Self>,
-    keyof (Fields & GraphQLAST.GetInheritedFields<Graph, Self>),
-    {}
-  > :
+  Graph[Self] extends TypeNode<any, infer Fields, any> ?
+    TypeFieldSelectors<
+      Self,
+      Graph,
+      Fields & GraphQLAST.GetInheritedFields<Graph, Self>,
+      keyof (Fields & GraphQLAST.GetInheritedFields<Graph, Self>),
+      {}
+    > :
   never
 ;
 
 export type TypeFieldSelectors<
   Self extends keyof Graph,
   Graph extends GraphQLAST,
-  Fields extends GraphQLReturnFields,
+  Fields extends ReturnTypeNodes,
   Unselected extends keyof Fields,
   Accumulator extends object,
 > =
@@ -106,17 +92,20 @@ export type TypeFieldSelectors<
   >;
 };
 
+/**
+ * Defines the call signature for a field on a type.
+ */
 export type TypeFieldSelector<
   Self extends keyof Graph,
   Graph extends GraphQLAST,
-  Fields extends GraphQLReturnFields,
+  Fields extends ReturnTypeNodes,
   Unselected extends keyof Fields,
-  Node extends GraphQLASTNode,
+  Node extends GraphQLNode,
   Field extends keyof Fields,
   Accumulator extends object
 > =
-  Node extends FunctionType<infer Args, infer Returns> ?
-    Returns extends PrimtiveType ?
+  Node extends FunctionNode<infer Args, infer Returns> ?
+    Returns extends PrimtiveTypeNode ?
       (args: FunctionParameters<Graph, Args, Self>) => TypeFieldSelectors<
         Self,
         Graph,
@@ -139,7 +128,7 @@ export type TypeFieldSelector<
         }
       > :
 
-  Node extends SelfType ?
+  Node extends SelfTypeNode ?
     <R extends GqlResult>(
       selector: (s: Selector<Graph, Graph[Self], Self>) => R
     ) => TypeFieldSelectors<
@@ -152,7 +141,7 @@ export type TypeFieldSelector<
       }
     > :
 
-  Node extends ReferenceType<infer $ref> ?
+  Node extends ReferenceTypeNode<infer $ref> ?
     <R extends GqlResult>(
       selector: (s: Selector<Graph, Graph[$ref], $ref>) => R
     ) => TypeFieldSelectors<
@@ -165,7 +154,7 @@ export type TypeFieldSelector<
       }
     > :
 
-  Node extends Type | InterfaceType | UnionType ?
+  Node extends TypeNode | InterfaceTypeNode | UnionTypeNode ?
     <R extends GqlResult>(
       selector: (s: Selector<Graph, Node, Self>) => R
     ) => TypeFieldSelectors<
@@ -178,8 +167,8 @@ export type TypeFieldSelector<
       }
     > :
 
-  Node extends ListType<infer I> ?
-    I extends PrimtiveType ? () => TypeFieldSelectors<
+  Node extends ListTypeNode<infer I> ?
+    I extends PrimtiveTypeNode ? () => TypeFieldSelectors<
       Self,
       Graph,
       Fields,
@@ -188,8 +177,8 @@ export type TypeFieldSelector<
         [field in Field]: Value<Graph, I, Self>[]
       }
     > :
-    I extends ReferenceType<infer $ref> ?
-      Graph[$ref] extends PrimtiveType ?
+    I extends ReferenceTypeNode<infer $ref> ?
+      Graph[$ref] extends PrimtiveTypeNode ?
         () => TypeFieldSelectors<
           Self,
           Graph,
@@ -237,7 +226,7 @@ export type SubTypeSelector<
   ID extends keyof Graph,
   Graph extends GraphQLAST
 > =
-  Graph[ID] extends InterfaceType<infer ID, infer Fields, any> ?
+  Graph[ID] extends InterfaceTypeNode<infer ID, infer Fields, any> ?
     SubTypeFieldSelectors<
       ID,
       Graph,
@@ -246,7 +235,7 @@ export type SubTypeSelector<
       {},
       GraphQLAST.GetInterfaceTypes<Graph, ID>
     > :
-  Graph[ID] extends UnionType<any, infer V> ?
+  Graph[ID] extends UnionTypeNode<any, infer V> ?
     SubTypeFieldSelectors<
       ID,
       Graph,
@@ -261,7 +250,7 @@ export type SubTypeSelector<
 export type SubTypeFieldSelectors<
   Self extends keyof Graph,
   Graph extends GraphQLAST,
-  Fields extends GraphQLReturnFields,
+  Fields extends ReturnTypeNodes,
   Unselected extends keyof Fields,
   Accumulator extends object,
   Subtypes extends keyof Graph
@@ -340,15 +329,15 @@ type _OnSelector<
 export type InterfaceFieldSelector<
   Graph extends GraphQLAST,
   Self extends keyof Graph,
-  Fields extends GraphQLReturnFields,
+  Fields extends ReturnTypeNodes,
   Unselected extends keyof Fields,
-  Node extends GraphQLASTNode,
+  Node extends GraphQLNode,
   Field extends string | symbol | number,
   Accumulator extends object,
   Subtypes extends keyof Graph
 > =
-  Node extends FunctionType<infer Args, infer Returns> ?
-    Returns extends PrimtiveType ?
+  Node extends FunctionNode<infer Args, infer Returns> ?
+    Returns extends PrimtiveTypeNode ?
       (args: FunctionParameters<Graph, Args, Self>) => SubTypeFieldSelectors<
         Self,
         Graph,
@@ -373,7 +362,7 @@ export type InterfaceFieldSelector<
         Subtypes
       > :
 
-    Node extends SelfType ?
+    Node extends SelfTypeNode ?
       <R extends GqlResult>(
         selector: (s: Selector<Graph, Graph[Self], Self>) => R
       ) => SubTypeFieldSelectors<
@@ -387,7 +376,7 @@ export type InterfaceFieldSelector<
         Subtypes
       > :
 
-    Node extends ReferenceType<infer $ref> ?
+    Node extends ReferenceTypeNode<infer $ref> ?
       <R extends GqlResult>(
         selector: (s: Selector<Graph, Graph[$ref], $ref>) => R
       ) => SubTypeFieldSelectors<
@@ -401,7 +390,7 @@ export type InterfaceFieldSelector<
         Subtypes
       > :
 
-  Node extends Type | InterfaceType | UnionType ?
+  Node extends TypeNode | InterfaceTypeNode | UnionTypeNode ?
     <R extends GqlResult>(
       selector: (s: Selector<Graph, Node, Self>) => R
     ) => SubTypeFieldSelectors<
@@ -415,8 +404,8 @@ export type InterfaceFieldSelector<
       Subtypes
     > :
 
-  Node extends ListType<infer I> ?
-    I extends PrimtiveType ? () => SubTypeFieldSelectors<
+  Node extends ListTypeNode<infer I> ?
+    I extends PrimtiveTypeNode ? () => SubTypeFieldSelectors<
       Self,
       Graph,
       Fields,
@@ -426,8 +415,8 @@ export type InterfaceFieldSelector<
       },
       Subtypes
     > :
-    I extends ReferenceType<infer $ref> ?
-      Graph[$ref] extends PrimtiveType ?
+    I extends ReferenceTypeNode<infer $ref> ?
+      Graph[$ref] extends PrimtiveTypeNode ?
         () => SubTypeFieldSelectors<
           Self,
           Graph,

@@ -1,9 +1,9 @@
-import { EnumType, GraphQLAST, GraphQLASTNode, GraphQLInputFields, GraphQLReturnFields, InputType, ReferenceType, ScalarType, SelfType, Type } from './ast';
+import { BooleanNode, EnumTypeNode, FloatNode, GraphQLAST, GraphQLNode, IDNode, InputTypeNode, IntNode, ReferenceTypeNode, RequestTypeNodes, ReturnTypeNodes, SelfTypeNode, StringNode, TypeNode } from './ast';
 import { KeysOfType } from './util';
 
 export type Values<
   Graph extends GraphQLAST,
-  Args extends GraphQLInputFields | GraphQLReturnFields,
+  Args extends RequestTypeNodes | ReturnTypeNodes,
   Self extends keyof Graph = never
 > = {
   [arg in keyof Args]+?: Value<Graph, Args[arg], Self>;
@@ -13,7 +13,7 @@ export type Values<
 
 export type Value<
   Graph extends GraphQLAST,
-  Node extends GraphQLASTNode,
+  Node extends GraphQLNode,
   Self extends keyof Graph = never
 > =
   Node extends { required: true; } ?
@@ -23,19 +23,19 @@ export type Value<
 
 type _Value<
   Graph extends GraphQLAST,
-  Node extends GraphQLASTNode,
+  Node extends GraphQLNode,
   Self extends keyof Graph = never
 > =
-  Node extends ScalarType<'String' | 'ID'> ? string :
-  Node extends ScalarType<'Int' | 'Float'> ? number :
-  Node extends ScalarType<'Bool'> ? boolean :
-  Node extends InputType<infer ID, infer F> ? Values<Graph, F, ID> :
-  Node extends EnumType<string, infer V> ? V[keyof V] :
-  Node extends Type<infer ID, infer F> ? Values<Graph, F, ID> :
-  Node extends SelfType ? {
+  Node extends StringNode | IDNode ? string :
+  Node extends IntNode | FloatNode ? number :
+  Node extends BooleanNode ? boolean :
+  Node extends InputTypeNode<infer ID, infer F> ? Values<Graph, F, ID> :
+  Node extends EnumTypeNode<string, infer V> ? V[keyof V] :
+  Node extends TypeNode<infer ID, infer F> ? Values<Graph, F, ID> :
+  Node extends SelfTypeNode ? {
     [_ in keyof Node]: Exclude<Value<Graph, Graph[Self], Self>, undefined>
   }[keyof Node] :
-  Node extends ReferenceType<infer $ref> ? {
+  Node extends ReferenceTypeNode<infer $ref> ? {
     [_ in keyof Node]: Exclude<Value<Graph, Graph[$ref], $ref>, undefined>
   }[keyof Node] :
   never

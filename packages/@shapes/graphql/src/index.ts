@@ -1,5 +1,19 @@
-export * from './prelude';
+export {
+  $,
+  Boolean as Bool,
+  Float,
+  Function,
+  ID,
+  Int,
+  List,
+  Self,
+  String,
+} from './ast';
 
-export { gqlClient } from './client';
-export { schemaBuilder } from './schema';
-export { toGraphQLAST } from './to-graphql';
+export { Client } from './client';
+export { QueryCompiler } from './query';
+export { SchemaBuilder } from './schema';
+export {
+  printGraphQLSchema,
+  toGraphQLAST
+} from './to-graphql';

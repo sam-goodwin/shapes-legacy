@@ -1,27 +1,63 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { UnionToIntersection } from './util';
 
-export type GraphQLASTNode = GraphQLReturnType | GraphQLInputType;
+export function isGraphQLASTNode(a: any): a is GraphQLNode {
+  return typeof a.type === 'string';
+}
 
-export type GraphQLAST = Record<string, GraphQLASTNode>
+export type GraphQLNode =
+  | EnumTypeNode
+  | FunctionNode
+  | InputTypeNode
+  | InterfaceTypeNode
+  | ListTypeNode<GraphQLNode>
+  | ReferenceTypeNode
+  | ScalarTypeNode
+  | SelfTypeNode
+  | TypeNode
+  | UnionTypeNode
+;
+
+export function isRootNode(node: any): node is RootNode {
+  return node && typeof node.type === 'string' && (
+       isEnumTypeNode(node)
+    || isInputTypeNode(node)
+    || isInterfaceTypeNode(node)
+    || isTypeNode(node)
+    || isUnionTypeNode(node)
+  );
+}
+
+export type RootNode =
+  | EnumTypeNode
+  | InputTypeNode
+  | InterfaceTypeNode
+  | TypeNode
+  | UnionTypeNode
+;
+
+export type GraphQLAST = Record<string, RootNode>
 export namespace GraphQLAST {
   /**
    * Collect all nodes from the AST that are of a certain type.
    */
-  export type CollectNodes<T extends {type: GraphQLASTNode['type']}, S extends GraphQLAST> = Extract<S[keyof S], T>;
+  export type CollectNodes<T extends {type: GraphQLNode['type']}, S extends GraphQLAST> = Extract<S[keyof S], T>;
 
   /**
    * Get fields inherited from a type/interface's implemented/extended interfaces.
    */
   export type GetInheritedFields<G extends GraphQLAST, T extends keyof G> =
-    G[T] extends Type<string, infer F1, infer Implements> | InterfaceType<any, infer F1, infer Implements> ?
-      Implements extends (keyof G)[] ? UnionToIntersection<{
-        [k in Implements[Extract<keyof Implements, number>]]:
-          G[k] extends InterfaceType<any, infer F2, infer Extends> ?
-            Extends extends (keyof G)[] ?
-              F1 & F2 & GetInheritedFields<G, Extends[Extract<keyof Extends, number>]> :
+    G[T] extends TypeNode<string, infer F1, infer Implements> | InterfaceTypeNode<any, infer F1, infer Implements> ?
+      Implements extends undefined ? F1 :
+      Implements extends (keyof G)[] ?
+        UnionToIntersection<{
+          [k in Implements[Extract<keyof Implements, number>]]:
+            G[k] extends InterfaceTypeNode<any, infer F2, infer Extends> ?
+              Extends extends undefined ? F1 :
+              Extends extends (keyof G)[] ? F1 & F2 & GetInheritedFields<G, Extends[Extract<keyof Extends, number>]> :
               F1 & F2 :
-          F1
-      }[Implements[Extract<keyof Implements, number>]]> :
+            F1
+        }[Implements[Extract<keyof Implements, number>]]> :
       F1 :
     never
   ;
@@ -32,7 +68,7 @@ export namespace GraphQLAST {
    * Get all interfaces extended by another interface.
    */
   export type GetInterfaces<G extends GraphQLAST, ID extends keyof G> =
-    G[ID] extends InterfaceType<any, any, infer Extends> ?
+    G[ID] extends InterfaceTypeNode<any, any, infer Extends> ?
       Extends extends (keyof G)[] ?
         ID | { [k in keyof Extends]: GetInterfaces<G, Extends[Extract<keyof Extends, number>]> }[keyof Extends] :
         ID :
@@ -43,7 +79,7 @@ export namespace GraphQLAST {
    * Get the types that implement an interface.
    */
   export type GetInterfaceTypes<G extends GraphQLAST, I extends keyof G> = {
-    [ID in keyof G]: G[ID] extends Type<infer T, any, infer Implements> ?
+    [ID in keyof G]: G[ID] extends TypeNode<infer T, any, infer Implements> ?
       I extends GetInterfaces<G, Extract<Implements[Extract<keyof Implements, number>], keyof G>> ?
         T :
         never :
@@ -51,45 +87,49 @@ export namespace GraphQLAST {
   }[keyof G];
 }
 
-export type GraphQLType = (
-  | EnumType
-  | FunctionType
-  | InterfaceType
-  | ListType<GraphQLType>
-  | ReferenceType
-  | ScalarType
-  | Type
-  | UnionType
+export type ReturnTypeNodes = Record<string, ReturnTypeNode>;
+
+/**
+ * The following types are valid in responses - they can be
+ * used as the fields in Interfaces and Types
+ */
+export type ReturnTypeNode = (
+  | EnumTypeNode
+  | FunctionNode
+  | InterfaceTypeNode
+  | ListTypeNode<ReturnTypeNode>
+  | ReferenceTypeNode
+  | ScalarTypeNode
+  | TypeNode
+  | UnionTypeNode
+  | SelfTypeNode
 );
 
-export type GraphQLReturnFields = Record<string, GraphQLReturnType>;
+export function isRequestTypeNode(graph: GraphQLAST, node: any): node is RequestTypeNode  {
+  return isGraphQLASTNode(node) && (
+       isInputTypeNode(node)
+    || isPrimitiveType(node)
+    || (isListTypeNode(node) && isRequestTypeNode(graph, node.item))
+    || isEnumTypeNode(node)
+    || (isReferenceTypeNode(node) && isRequestTypeNode(graph, graph[node.id]))
+    || isTypeNode(node)
+    || isInterfaceTypeNode(node)
+    || isUnionTypeNode(node)
+    || isSelfTypeNode(node)
+  );
+}
 
-export type GraphQLReturnType = (
-  | EnumType
-  | FunctionType
-  | InterfaceType
-  | ListType<GraphQLReturnType>
-  | ReferenceType
-  | ScalarType
-  | Type
-  | UnionType
-  | SelfType
+export type RequestTypeNodes = Record<string, RequestTypeNode>;
+export type RequestTypeNode = (
+  | EnumTypeNode
+  | InputTypeNode
+  | ListTypeNode<RequestTypeNode>
+  | ScalarTypeNode
+  | ReferenceTypeNode
 );
 
-export type GraphQLInputType = (
-  | EnumType
-  | InputType
-  | ListType<GraphQLInputType>
-  | ScalarType
-  | ReferenceType
-);
-
-export type GraphQLInputFields = Record<string, GraphQLInputType>;
-
-export class BaseType {
-  // @ts-ignore
-  public readonly required: boolean;
-  // @ts-ignore
+class BaseType {
+  public readonly required: boolean = false;
   public get ['!'](): this & {required: true;} {
     return {
       ...this,
@@ -98,7 +138,7 @@ export class BaseType {
   }
 }
 
-export class ScalarType<ID extends string = string> extends BaseType {
+export class ScalarType<ID extends string> extends BaseType {
   public readonly type: 'scalar' = 'scalar';
   constructor(
     public readonly id: ID
@@ -107,7 +147,52 @@ export class ScalarType<ID extends string = string> extends BaseType {
   }
 }
 
-export class ListType<T extends GraphQLASTNode = GraphQLASTNode> extends BaseType {
+export function isScalarTypeNode(node: any): node is ScalarTypeNode {
+  return node && node.type === 'scalar';
+}
+
+export type ScalarTypeNode =
+  | BooleanNode
+  | FloatNode
+  | IDNode
+  | IntNode
+  | StringNode
+;
+
+export type BooleanNode = typeof Boolean;
+export const Boolean = new ScalarType('Boolean');
+
+export type FloatNode = typeof Float;
+export const Float = new ScalarType('Float');
+
+export type IDNode = typeof ID;
+export const ID = new ScalarType('ID');
+
+export type IntNode = typeof Int;
+export const Int = new ScalarType('Int');
+
+export type StringNode = typeof String;
+export const String = new ScalarType('String');
+
+export function isPrimitiveType(node: GraphQLNode): node is PrimtiveTypeNode {
+  return isScalarTypeNode(node) ||isEnumTypeNode(node) || (isListTypeNode(node) && isPrimitiveType(node.item));
+}
+
+export type PrimtiveTypeNode =
+  | ScalarTypeNode
+  | EnumTypeNode
+  | ListTypeNode<PrimtiveTypeNode>
+;
+
+export function isListTypeNode(node: any): node is ListTypeNode {
+  return node && node.type === 'list';
+}
+
+export function List<T extends ReturnTypeNode>(item: T): ListTypeNode<T> {
+  return new ListTypeNode(item);
+}
+
+export class ListTypeNode<T extends GraphQLNode = GraphQLNode> extends BaseType {
   public readonly type: 'list' = 'list';
   public readonly id?: never;
 
@@ -118,7 +203,15 @@ export class ListType<T extends GraphQLASTNode = GraphQLASTNode> extends BaseTyp
   }
 }
 
-export class ReferenceType<ID extends string = string> extends BaseType {
+export function isReferenceTypeNode(node: GraphQLNode): node is ReferenceTypeNode {
+  return node.type === 'reference';
+}
+
+export function $<ID extends string>(id: ID): ReferenceTypeNode<ID> {
+  return new ReferenceTypeNode(id);
+}
+
+export class ReferenceTypeNode<ID extends string = string> extends BaseType {
   public readonly type: 'reference' = 'reference';
   constructor(
     public readonly id: ID
@@ -127,13 +220,34 @@ export class ReferenceType<ID extends string = string> extends BaseType {
   }
 }
 
-export class SelfType extends BaseType {
+export function isSelfTypeNode(node: GraphQLNode): node is SelfTypeNode {
+  return node.type === 'self';
+}
+
+export class SelfTypeNode extends BaseType {
   public readonly type: 'self' = 'self';
 }
 
-export class InterfaceType<
+export const Self = new SelfTypeNode();
+
+export function isInterfaceTypeNode(node: GraphQLNode): node is InterfaceTypeNode {
+  return node.type === 'interface';
+}
+export function assertIsInterfaceTypeNode(node: GraphQLNode): asserts node is InterfaceTypeNode {
+  if (!isInterfaceTypeNode(node)) {
+    throw new Error(`expected an interface node, got: ${node.type}`);
+  }
+}
+
+export function assertIsTypeOrInterfaceNode(node: GraphQLNode): asserts node is TypeNode {
+  if (node && !(isTypeNode(node) || isInterfaceTypeNode(node))) {
+    throw new Error('can only query a root type');
+  }
+}
+
+export class InterfaceTypeNode<
   ID extends string = string,
-  F extends GraphQLReturnFields = GraphQLReturnFields,
+  F extends ReturnTypeNodes = ReturnTypeNodes,
   E extends string[] | undefined = string[] | undefined
 > extends BaseType {
   public readonly type: 'interface' = 'interface';
@@ -150,9 +264,19 @@ export class InterfaceType<
   }
 }
 
-export class Type<
+export function isTypeNode(node: GraphQLNode): node is TypeNode {
+  return node.type === 'type';
+}
+
+export function assertIsTypeNode(node: GraphQLNode): asserts node is TypeNode {
+  if (!isTypeNode(node)) {
+    throw new Error(`expected a type node, got: ${node.type}`);
+  }
+}
+
+export class TypeNode<
   ID extends string = string,
-  F extends GraphQLReturnFields = GraphQLReturnFields,
+  F extends ReturnTypeNodes = ReturnTypeNodes,
   I extends string[] | undefined = string[] | undefined
 > extends BaseType {
   public readonly type: 'type' = 'type';
@@ -169,9 +293,13 @@ export class Type<
   }
 }
 
-export class InputType<
+export function isInputTypeNode(node: GraphQLNode): node is InputTypeNode {
+  return node.type === 'input';
+}
+
+export class InputTypeNode<
   ID extends string = string,
-  F extends GraphQLInputFields = GraphQLInputFields
+  F extends RequestTypeNodes = RequestTypeNodes
 > extends BaseType {
   public readonly type: 'input' = 'input';
 
@@ -183,12 +311,16 @@ export class InputType<
   }
 }
 
+export function isUnionTypeNode(node: GraphQLNode): node is UnionTypeNode {
+  return node.type === 'union';
+}
+
 export type UnionValue =
-  | Type
-  | InterfaceType
-  | UnionType
+  | TypeNode
+  | InterfaceTypeNode
+  | UnionTypeNode
 ;
-export class UnionType<
+export class UnionTypeNode<
   ID extends string = string,
   U extends string[] = string[]
 > extends BaseType {
@@ -201,8 +333,13 @@ export class UnionType<
   }
 }
 
+export function isEnumTypeNode(node: any): node is EnumTypeNode {
+  return node && node.type === 'enum';
+}
+
 export type EnumValues = Record<string, string>
-export class EnumType<
+
+export class EnumTypeNode<
   ID extends string = string,
   E extends EnumValues = EnumValues
 > extends BaseType {
@@ -215,13 +352,23 @@ export class EnumType<
   }
 }
 
-export class FunctionType<
-  Args extends GraphQLInputFields = GraphQLInputFields,
-  Returns extends GraphQLReturnType = GraphQLReturnType
+export function isFunctionNode(node: GraphQLNode): node is FunctionNode {
+  return node && node.type === 'function';
+}
+
+export function Function<
+  Args extends RequestTypeNodes = RequestTypeNodes,
+  Returns extends ReturnTypeNode = ReturnTypeNode
+>(args: Args, returns: Returns): FunctionNode<Args, Returns> {
+  return new FunctionNode(args, returns);
+}
+
+export class FunctionNode<
+  Args extends RequestTypeNodes = RequestTypeNodes,
+  Returns extends ReturnTypeNode = ReturnTypeNode
 > extends BaseType {
   public readonly id?: never;
-  // @ts-ignore
-  public readonly type: 'function';
+  public readonly type: 'function' = 'function';
 
   constructor(
     public readonly args: Args,
@@ -231,39 +378,14 @@ export class FunctionType<
   }
 }
 
-export class InputParameter<ID extends string, T extends GraphQLInputType> {
-  // @ts-ignore
-  public readonly type: 'parameter';
+export function isInputParameter(a: any): a is InputParameter<string, RequestTypeNode> {
+  return a.type === 'parameter';
+}
+
+export class InputParameter<ID extends string, T extends RequestTypeNode> {
+  public readonly type: 'parameter' = 'parameter';
   constructor(
     public readonly id: ID,
     public readonly parameterType: T
   ) {}
-}
-
-export type PrimtiveType =
-  | ScalarType
-  | EnumType
-  | ListType<PrimtiveType>
-;
-
-export function isPrimitiveType(node: GraphQLASTNode): node is PrimtiveType {
-  return node.type === 'scalar' || node.type === 'enum' || (node.type === 'list' && isPrimitiveType(node.item));
-}
-
-export function assertIsType(type: GraphQLASTNode): asserts type is Type {
-  if (type.type !== 'type') {
-    throw new Error('can only query a root type');
-  }
-}
-export function isType(type: GraphQLASTNode): type is Type {
-  return type.type !== 'type';
-}
-
-export function isTypeOrInterface(type: GraphQLASTNode): type is Type | InterfaceType {
-  return type !== undefined && (type.type === 'type' || type.type === 'interface');
-}
-export function assertIsTypeOrInterface(type: GraphQLASTNode): asserts type is Type {
-  if (type && isTypeOrInterface(type)) {
-    throw new Error('can only query a root type');
-  }
 }

@@ -1,93 +1,98 @@
-// @ts-ignore
-import { GQL, GqlResult, GqlResultType, Selector } from './selector';
-// @ts-ignore
-import { GraphQLAST, GraphQLASTNode, GraphQLInputFields, GraphQLInputType, InputParameter, Type } from './ast';
-// @ts-ignore
+import { GqlResult, GqlResultType } from './selector';
+import { GqlRoot, QueryCompiler } from './query';
 import { DocumentNode } from 'graphql';
-import { GraphQLSchema } from './schema';
-import { Value } from './value';
+import { Schema } from './schema';
+import { TypeNode } from './ast';
 
-// @ts-ignore
-export function gqlClient<S extends GraphQLSchema>(schema: S): GqlClient<S> {
-  throw new Error('todo');
+// import { print } from 'graphql/language/printer';
+
+export type RequestApi = (
+  url: string,
+  query: string | DocumentNode,
+  variables?: Record<string, any>
+) => any;
+
+export interface ClientProps<S extends Schema> {
+  /**
+   * The GraphQL Schema.
+   */
+  schema: S;
+  /**
+   * URL of the GraphQL API.
+   */
+  apiUrl: string;
+  /**
+   * Function for making HTTP requests.
+   */
+  requestApi?: RequestApi;
 }
 
-export interface GqlClient<S extends GraphQLSchema> {
-  query<
-    U extends GqlQueryResult
-  >(
-    f: (i: GqlRoot<S['graph'], Extract<S['graph'][S['query']], Type>>) => U
-  ): Promise<GetGqlQueryResult<U>>;
+export class Client<S extends Schema> {
+  /**
+   * GraphQL Schema.
+   */
+  public readonly schema: S;
+  /**
+   * Root of the Query API.
+   */
+  public readonly queryRootType: S['graph'][S['query']];
+  /**
+   * Compiler for constructing type-safe GraphQL queries.
+   */
+  public readonly queryCompiler: QueryCompiler<S['graph'], Extract<this['queryRootType'], TypeNode>>;
+  /**
+   * Root of the Mutation API (if defined).
+   */
+  public readonly mutationRootType: S['mutation'] extends keyof S['graph'] ? S['graph'][S['mutation']] : undefined = undefined as any;
+  /**
+   * Compiler for constructing type-safe GraphQL mutations (if defined).
+   */
+  public readonly mutationCompiler: S['mutation'] extends keyof S['graph'] ? QueryCompiler<S['graph'], Extract<this['mutationRootType'], TypeNode>> : undefined = undefined as any;
 
-  compileQuery<
-    U extends GqlQueryResult
-  >(
-    f: (i: GqlRoot<S['graph'], Extract<S['graph'][S['query']], Type>>) => U
-  ): CompiledGqlQuery<never, undefined, GetGqlQueryResult<U>>;
+  constructor(props: ClientProps<S>) {
+    this.schema = props.schema;
+    this.queryRootType = this.schema.graph[this.schema.query] as any;
+    this.queryCompiler = new QueryCompiler(this.schema.graph, this.queryRootType as any);
+    if (this.schema.mutation) {
+      this.mutationRootType = this.schema.graph[this.schema.mutation] as any;
+      this.mutationCompiler = new QueryCompiler(this.schema.graph, this.mutationRootType as any) as any;
+    }
+  }
 
-  compileQuery<
-    Name extends string,
-    U extends GqlQueryResult
-  >(
-    queryName: Name,
-    f: (root: GqlRoot<S['graph'], Extract<S['graph'][S['query']], Type>>) => U
-  ): CompiledGqlQuery<Name, undefined, GetGqlQueryResult<U>>;
+  public query<T extends GqlResult>(
+    _query: (s: GqlRoot<S['graph'], Extract<this['queryRootType'], TypeNode>>) => T
+  ): Promise<GraphQLResponse<GqlResultType<T>>> {
+    // const {queryAST: operationDefinitionNode} = this.queryCompiler.compile(_query);
+    // const query = print(operationDefinitionNode);
 
-  compileQuery<
-    Parameters extends GraphQLInputFields,
-    U extends GqlQueryResult
-  >(
-    parameters: Parameters,
-    f: (parameters: {
-      [parameterName in keyof Parameters]: InputParameter<Extract<parameterName, string>, Parameters[parameterName]>
-    }, root: GqlRoot<S['graph'], Extract<S['graph'][S['query']], Type>>) => U
-  ): CompiledGqlQuery<never, {
-    [parameterName in keyof Parameters]: Value<S['graph'], Parameters[parameterName]>;
-  }, GetGqlQueryResult<U>>;
-
-  compileQuery<
-    Name extends string,
-    Parameters extends GraphQLInputFields,
-    U extends GqlQueryResult
-  >(
-    name: Name,
-    parameters: Parameters,
-    f: (parameters: {
-      [parameterName in keyof Parameters]: InputParameter<Extract<parameterName, string>, Parameters[parameterName]>
-    }, root: GqlRoot<S['graph'], Extract<S['graph'][S['query']], Type>>) => U
-  ): CompiledGqlQuery<never, {
-    [parameterName in keyof Parameters]: Value<S['graph'], Parameters[parameterName]>;
-  }, GetGqlQueryResult<U>>;
-
-  mutation: S['mutation'] extends keyof S['graph'] ?
-    <U extends GqlResult>(f: (i: GqlRoot<S['graph'], Extract<S['graph'][S['mutation']], Type>>) => U) => Promise<GqlResultType<U>> :
-    never;
+    throw new Error('todo');
+  }
 }
 
-export type GqlRoot<Graph extends GraphQLAST, Root extends Type> = {
-  [field in keyof GraphQLAST.GetInheritedFields<Graph, Root['id']>]: Selector<
-    Graph,
-    Extract<GraphQLAST.GetInheritedFields<Graph, Root['id']>[field], GraphQLASTNode>,
-    Root['id']
-  >
-};
+// const defaultRequestApi: RequestApi = async (
+//   url,
+//   query,
+//   variables
+// ) => {
+//   await fetch('', {
+//     method: 'POST',
+//     headers: {
+//       'Content-Type': 'application/json',
+//       'Accept': 'application/json'
+//     },
+//   })
+// }
 
-type GqlQueryResult = GqlResult | Record<string, GqlResult>;
-type GetGqlQueryResult<U extends GqlQueryResult> =
-  U extends GqlResult<infer T> ? T :
-  U extends Record<string, GqlResult> ? {
-    [alias in keyof U]: GqlResultType<U[alias]>
-  } :
-  never;
+export interface GraphQLError {
+  message: string;
+  locations: { line: number; column: number }[];
+  path: string[];
+}
 
-
-export interface CompiledGqlQuery<
-  Name extends string,
-  Input,
-  Output,
-> {
-  queryName: Name;
-  execute: Input extends undefined ?
-    (input?: Input) => Promise<Output> :
-    (input: Input) => Promise<Output>;
+export interface GraphQLResponse<T> {
+  data?: T;
+  errors?: GraphQLError[];
+  extensions?: any;
+  status: number;
+  [key: string]: any;
 }
