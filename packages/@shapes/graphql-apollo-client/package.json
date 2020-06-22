@@ -29,7 +29,9 @@
   },
   "devDependencies": {
     "@types/react": "^16.0.0",
+    "@types/react-test-renderer": "^16.9.2",
     "@types/sinon": "^9.0.0",
+    "react-test-renderer": "^16.13.1",
     "react": "^16.0.0",
     "sinon": "^9.0.0"
   },

@@ -1,4 +1,4 @@
-import { ArgumentNode, FieldNode, InlineFragmentNode, OperationDefinitionNode, SelectionNode, SelectionSetNode, ValueNode, VariableDefinitionNode } from 'graphql';
+import { ArgumentNode, DocumentNode, FieldNode, InlineFragmentNode, SelectionNode, SelectionSetNode, ValueNode, VariableDefinitionNode } from 'graphql';
 import { GqlResult, GqlResultType, Selector } from './selector';
 import { GraphQLAST, InputParameter, InterfaceTypeNode, RequestTypeNode, RequestTypeNodes, ReturnTypeNode, ReturnTypeNodes, TypeNode, UnionTypeNode, assertIsInterfaceTypeNode, assertIsTypeNode, assertIsTypeOrInterfaceNode, isFunctionNode, isInputParameter, isInputTypeNode, isInterfaceTypeNode, isListTypeNode, isPrimitiveType, isReferenceTypeNode, isRequestTypeNode, isScalarTypeNode, isSelfTypeNode, isTypeNode, isUnionTypeNode } from './ast';
 import { Value, Values } from './value';
@@ -155,30 +155,34 @@ export class QueryCompiler<G extends GraphQLAST, Root extends TypeNode> {
       selections: queryResult.$selections
     };
 
-    const operationDefinitionNode: OperationDefinitionNode = {
-      kind: 'OperationDefinition',
-      operation: 'query',
-      name: queryName === undefined ? undefined : {
-        kind: 'Name',
-        value: queryName
-      },
-      variableDefinitions: Object.entries(parameters).map(([name, parameter]) => ({
-        kind: 'VariableDefinition',
-        variable: {
-          kind: 'Variable',
-          name: {
-            kind: 'Name',
-            value: name
-          }
+    const documentNode: DocumentNode ={
+      kind: 'Document',
+      definitions: [{
+      
+        kind: 'OperationDefinition',
+        operation: 'query',
+        name: queryName === undefined ? undefined : {
+          kind: 'Name',
+          value: queryName
         },
-        type: inputTypeNode(parameter)
-      } as VariableDefinitionNode)),
-      selectionSet,
+        variableDefinitions: Object.entries(parameters).map(([name, parameter]) => ({
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: {
+              kind: 'Name',
+              value: name
+            }
+          },
+          type: inputTypeNode(parameter)
+        } as VariableDefinitionNode)),
+        selectionSet,
+      }]
     };
 
     return {
-      query: print(operationDefinitionNode),
-      queryAST: operationDefinitionNode,
+      query: print(documentNode),
+      queryAST: documentNode,
       parseQueryResponse(json: any): any {
         // TODO
         return json;
@@ -193,20 +197,20 @@ export class QueryCompiler<G extends GraphQLAST, Root extends TypeNode> {
 
 export interface CompiledGqlQuery<
   Output,
-  OperationNode extends OperationDefinitionNode = OperationDefinitionNode
+  Document extends DocumentNode = DocumentNode
 > {
   query: string;
-  queryAST: OperationNode;
+  queryAST: Document;
   parseQueryResponse(json: any): Output;
   serializeParameters: never;
 }
 export interface CompiledVariableGqlQuery<
   Variables,
   Output,
-  OperationNode extends OperationDefinitionNode = OperationDefinitionNode
+  Document extends DocumentNode = DocumentNode
 > {
   query: string;
-  queryAST: OperationNode;
+  queryAST: Document;
   parseQueryResponse(json: any): Output;
   serializeParameters(input: Variables): any;
 }

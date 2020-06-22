@@ -17,8 +17,5 @@ export function useShapeQuery(
   query: gql.CompiledGqlQuery<any> | gql.CompiledVariableGqlQuery<any, any>,
   options?: QueryHookOptions<any, any>
 ): any {
-  return useQuery({
-    kind: 'Document',
-    definitions: [query.queryAST]
-  }, options)
+  return useQuery(query.queryAST, options)
 }

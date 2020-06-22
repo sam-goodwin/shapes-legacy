@@ -41,10 +41,7 @@ export class ShapeClient<TSchema extends gql.GraphQLSchema<any, any, any>, TCach
   ): Promise<ApolloQueryResult<gql.GqlResultType<Result>>> {
     const {queryAST} = this.schema.query.compile(queryBlock as any);
     return this.apolloClient.query({
-      query: {
-        kind: 'Document',
-        definitions: [queryAST]
-      }
+      query: queryAST
     });
   }
 
@@ -58,10 +55,7 @@ export class ShapeClient<TSchema extends gql.GraphQLSchema<any, any, any>, TCach
     }
     const {queryAST} = this.schema.mutation.compile(mutationBlock as any);
     return this.apolloClient.query({
-      query: {
-        kind: 'Document',
-        definitions: [queryAST]
-      }
+      query: queryAST
     }) as any;
   }
 }

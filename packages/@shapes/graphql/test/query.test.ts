@@ -90,38 +90,279 @@ it('should compile a query to GraphQL AST', () => {
     id
     bark
   }
-}`)
+}
+`)
   expect(query.queryAST).toEqual({
-    "kind": "OperationDefinition",
-    "name": {
-      "kind": "Name",
-      "value": "A"
-    },
-    "operation": "query",
-    "selectionSet": {
-      "kind": "SelectionSet",
-      "selections": [
-        {
-          "arguments": [
-            {
-              "kind": "Argument",
-              "name": {
-                "kind": "Name",
-                "value": "id",
-              },
-              "value": {
-                "kind": "Variable",
+    "kind": "Document",
+    "definitions": [{
+      "kind": "OperationDefinition",
+      "name": {
+        "kind": "Name",
+        "value": "A"
+      },
+      "operation": "query",
+      "selectionSet": {
+        "kind": "SelectionSet",
+        "selections": [
+          {
+            "arguments": [
+              {
+                "kind": "Argument",
                 "name": {
                   "kind": "Name",
                   "value": "id",
                 },
+                "value": {
+                  "kind": "Variable",
+                  "name": {
+                    "kind": "Name",
+                    "value": "id",
+                  },
+                },
               },
+            ],
+            "kind": "Field",
+            "name": {
+              "kind": "Name",
+              "value": "getAnimal",
             },
-          ],
+            "selectionSet": {
+              "kind": "SelectionSet",
+              "selections": [
+                {
+                  "kind": "Field",
+                  "name": {
+                    "kind": "Name",
+                    "value": "__typename",
+                  }
+                },
+                {
+                  "kind": "Field",
+                  "name": {
+                    "kind": "Name",
+                    "value": "id",
+                  },
+                },
+                {
+                  "kind": "Field",
+                  "name": {
+                    "kind": "Name",
+                    "value": "name",
+                  },
+                },
+                {
+                  "kind": "Field",
+                  "name": {
+                    "kind": "Name",
+                    "value": "bool",
+                  },
+                },
+                {
+                  "kind": "Field",
+                  "name": {
+                    "kind": "Name",
+                    "value": "float",
+                  },
+                },
+                {
+                  "kind": "Field",
+                  "name": {
+                    "kind": "Name",
+                    "value": "int",
+                  },
+                },
+                {
+                  "kind": "Field",
+                  "name": {
+                    "kind": "Name",
+                    "value": "list",
+                  },
+                },
+                {
+                  "kind": "Field",
+                  "name": {
+                    "kind": "Name",
+                    "value": "parent",
+                  },
+                  "selectionSet": {
+                    "kind": "SelectionSet",
+                    "selections": [
+                      {
+                        "kind": "Field",
+                        "name": {
+                          "kind": "Name",
+                          "value": "__typename",
+                        }
+                      },
+                      {
+                        "kind": "Field",
+                        "name": {
+                          "kind": "Name",
+                          "value": "id",
+                        },
+                      },
+                    ],
+                  },
+                },
+                {
+                  "arguments": [
+                    {
+                      "kind": "Argument",
+                      "name": {
+                        "kind": "Name",
+                        "value": "a",
+                      },
+                      "value": {
+                        "kind": "StringValue",
+                        "value": "a",
+                      },
+                    },
+                  ],
+                  "kind": "Field",
+                  "name": {
+                    "kind": "Name",
+                    "value": "fn",
+                  },
+                  "selectionSet": {
+                    "kind": "SelectionSet",
+                    "selections": [
+                      {
+                        "kind": "Field",
+                        "name": {
+                          "kind": "Name",
+                          "value": "__typename",
+                        }
+                      },
+                      {
+                        "kind": "Field",
+                        "name": {
+                          "kind": "Name",
+                          "value": "id",
+                        },
+                      },
+                    ],
+                  },
+                },
+                {
+                  "kind": "Field",
+                  "name": {
+                    "kind": "Name",
+                    "value": "complexList",
+                  },
+                  "selectionSet": {
+                    "kind": "SelectionSet",
+                    "selections": [
+                      {
+                        "kind": "Field",
+                        "name": {
+                          "kind": "Name",
+                          "value": "__typename",
+                        }
+                      },
+                      {
+                        "kind": "Field",
+                        "name": {
+                          "kind": "Name",
+                          "value": "id",
+                        },
+                      },
+                    ],
+                  },
+                }, {
+                  "kind": "Field",
+                  "name": {
+                    "kind": "Name",
+                    "value": "forwardCircular",
+                  },
+                  "selectionSet": {
+                    "kind": "SelectionSet",
+                    "selections": [
+                      {
+                        "kind": "Field",
+                        "name": {
+                          "kind": "Name",
+                          "value": "b",
+                        },
+                        "selectionSet": {
+                          "kind": "SelectionSet",
+                          "selections": [
+                            {
+                              "kind": "Field",
+                              "name": {
+                                "kind": "Name",
+                                "value": "a",
+                              },
+                              "selectionSet": {
+                                "kind": "SelectionSet",
+                                "selections": [
+                                  {
+                                    "kind": "Field",
+                                    "name": {
+                                      "kind": "Name",
+                                      "value": "i",
+                                    },
+                                  },
+                                ],
+                              },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+                {
+                  "kind": "InlineFragment",
+                  "selectionSet": {
+                    "kind": "SelectionSet",
+                    "selections": [
+                      {
+                        "kind": "Field",
+                        "name": {
+                          "kind": "Name",
+                          "value": "bark",
+                        },
+                      },
+                    ],
+                  },
+                  "typeCondition": {
+                    "kind": "NamedType",
+                    "name": {
+                      "kind": "Name",
+                      "value": "Dog",
+                    },
+                  },
+                },
+                {
+                  "kind": "InlineFragment",
+                  "selectionSet": {
+                    "kind": "SelectionSet",
+                    "selections": [
+                      {
+                        "kind": "Field",
+                        "name": {
+                          "kind": "Name",
+                          "value": "tweets",
+                        },
+                      },
+                    ],
+                  },
+                  "typeCondition": {
+                    "kind": "NamedType",
+                    "name": {
+                      "kind": "Name",
+                      "value": "Bird",
+                    },
+                  },
+                },
+              ],
+            },
+          },
+          {
           "kind": "Field",
           "name": {
             "kind": "Name",
-            "value": "getAnimal",
+            "value": "dogs",
           },
           "selectionSet": {
             "kind": "SelectionSet",
@@ -130,13 +371,6 @@ it('should compile a query to GraphQL AST', () => {
                 "kind": "Field",
                 "name": {
                   "kind": "Name",
-                  "value": "__typename",
-                }
-              },
-              {
-                "kind": "Field",
-                "name": {
-                  "kind": "Name",
                   "value": "id",
                 },
               },
@@ -144,266 +378,36 @@ it('should compile a query to GraphQL AST', () => {
                 "kind": "Field",
                 "name": {
                   "kind": "Name",
-                  "value": "name",
-                },
-              },
-              {
-                "kind": "Field",
-                "name": {
-                  "kind": "Name",
-                  "value": "bool",
-                },
-              },
-              {
-                "kind": "Field",
-                "name": {
-                  "kind": "Name",
-                  "value": "float",
-                },
-              },
-              {
-                "kind": "Field",
-                "name": {
-                  "kind": "Name",
-                  "value": "int",
-                },
-              },
-              {
-                "kind": "Field",
-                "name": {
-                  "kind": "Name",
-                  "value": "list",
-                },
-              },
-              {
-                "kind": "Field",
-                "name": {
-                  "kind": "Name",
-                  "value": "parent",
-                },
-                "selectionSet": {
-                  "kind": "SelectionSet",
-                  "selections": [
-                    {
-                      "kind": "Field",
-                      "name": {
-                        "kind": "Name",
-                        "value": "__typename",
-                      }
-                    },
-                    {
-                      "kind": "Field",
-                      "name": {
-                        "kind": "Name",
-                        "value": "id",
-                      },
-                    },
-                  ],
-                },
-              },
-              {
-                "arguments": [
-                  {
-                    "kind": "Argument",
-                    "name": {
-                      "kind": "Name",
-                      "value": "a",
-                    },
-                    "value": {
-                      "kind": "StringValue",
-                      "value": "a",
-                    },
-                  },
-                ],
-                "kind": "Field",
-                "name": {
-                  "kind": "Name",
-                  "value": "fn",
-                },
-                "selectionSet": {
-                  "kind": "SelectionSet",
-                  "selections": [
-                    {
-                      "kind": "Field",
-                      "name": {
-                        "kind": "Name",
-                        "value": "__typename",
-                      }
-                    },
-                    {
-                      "kind": "Field",
-                      "name": {
-                        "kind": "Name",
-                        "value": "id",
-                      },
-                    },
-                  ],
-                },
-              },
-              {
-                "kind": "Field",
-                "name": {
-                  "kind": "Name",
-                  "value": "complexList",
-                },
-                "selectionSet": {
-                  "kind": "SelectionSet",
-                  "selections": [
-                    {
-                      "kind": "Field",
-                      "name": {
-                        "kind": "Name",
-                        "value": "__typename",
-                      }
-                    },
-                    {
-                      "kind": "Field",
-                      "name": {
-                        "kind": "Name",
-                        "value": "id",
-                      },
-                    },
-                  ],
-                },
-              }, {
-                "kind": "Field",
-                "name": {
-                  "kind": "Name",
-                  "value": "forwardCircular",
-                },
-                "selectionSet": {
-                  "kind": "SelectionSet",
-                  "selections": [
-                    {
-                      "kind": "Field",
-                      "name": {
-                        "kind": "Name",
-                        "value": "b",
-                      },
-                      "selectionSet": {
-                        "kind": "SelectionSet",
-                        "selections": [
-                          {
-                            "kind": "Field",
-                            "name": {
-                              "kind": "Name",
-                              "value": "a",
-                            },
-                            "selectionSet": {
-                              "kind": "SelectionSet",
-                              "selections": [
-                                {
-                                  "kind": "Field",
-                                  "name": {
-                                    "kind": "Name",
-                                    "value": "i",
-                                  },
-                                },
-                              ],
-                            },
-                          },
-                        ],
-                      },
-                    },
-                  ],
-                },
-              },
-              {
-                "kind": "InlineFragment",
-                "selectionSet": {
-                  "kind": "SelectionSet",
-                  "selections": [
-                    {
-                      "kind": "Field",
-                      "name": {
-                        "kind": "Name",
-                        "value": "bark",
-                      },
-                    },
-                  ],
-                },
-                "typeCondition": {
-                  "kind": "NamedType",
-                  "name": {
-                    "kind": "Name",
-                    "value": "Dog",
-                  },
-                },
-              },
-              {
-                "kind": "InlineFragment",
-                "selectionSet": {
-                  "kind": "SelectionSet",
-                  "selections": [
-                    {
-                      "kind": "Field",
-                      "name": {
-                        "kind": "Name",
-                        "value": "tweets",
-                      },
-                    },
-                  ],
-                },
-                "typeCondition": {
-                  "kind": "NamedType",
-                  "name": {
-                    "kind": "Name",
-                    "value": "Bird",
-                  },
+                  "value": "bark",
                 },
               },
             ],
           },
         },
+        ],
+      },
+      "variableDefinitions": [
         {
-         "kind": "Field",
-         "name": {
-           "kind": "Name",
-           "value": "dogs",
-         },
-         "selectionSet": {
-           "kind": "SelectionSet",
-           "selections": [
-             {
-               "kind": "Field",
-               "name": {
-                 "kind": "Name",
-                 "value": "id",
-               },
-             },
-             {
-               "kind": "Field",
-               "name": {
-                 "kind": "Name",
-                 "value": "bark",
-               },
-             },
-           ],
-         },
-       },
-      ],
-    },
-    "variableDefinitions": [
-      {
-        "kind": "VariableDefinition",
-        "type": {
-          "kind": "NonNullType",
+          "kind": "VariableDefinition",
           "type": {
-            "kind": "NamedType",
+            "kind": "NonNullType",
+            "type": {
+              "kind": "NamedType",
+              "name": {
+                "kind": "Name",
+                "value": "ID",
+              },
+            },
+          },
+          "variable": {
+            "kind": "Variable",
             "name": {
               "kind": "Name",
-              "value": "ID",
+              "value": "id",
             },
           },
         },
-        "variable": {
-          "kind": "Variable",
-          "name": {
-            "kind": "Name",
-            "value": "id",
-          },
-        },
-      },
-    ],
+      ],
+    }]
   });
 });

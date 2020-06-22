@@ -25,19 +25,6 @@ export const schema = new GraphQLSchemaBuilder()
     query: 'Query'
   });
 
-
-// const query = schema.query.compile({id: gql.ID["!"]}, ({id}, q) => q
-//   .getA({id}, (a) => a
-//     .id()
-//   )
-// );
-
-// export const {data, error, loading} = useShapeQuery(query, {
-//   variables: {
-//     id: 'id'
-//   }
-// });
-
 it('should proxy calls to the Apollo Client', async () => {
   const mockClient = {
     query: sinon.fake.resolves({
