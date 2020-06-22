@@ -1,5 +1,5 @@
 import type * as gql from 'graphql';
-import { GraphQLNode, InterfaceTypeNode, RequestTypeNode, ReturnTypeNode, TypeNode, isFunctionNode } from './ast';
+import { InterfaceTypeNode, RequestTypeNode, ReturnTypeNode, RootNode, TypeNode, isFunctionNode } from './ast';
 import { GraphQLSchema } from './schema';
 
 import { print } from 'graphql/language/printer';
@@ -9,7 +9,7 @@ import { print } from 'graphql/language/printer';
  *
  * @param schema - schema to print
  */
-export function printGraphQLSchema(schema: GraphQLSchema): string {
+export function printGraphQLSchema(schema: GraphQLSchema<any, any, any>): string {
   return print(toGraphQLAST(schema));
 }
 
@@ -18,17 +18,17 @@ export function printGraphQLSchema(schema: GraphQLSchema): string {
  *
  * @param schema - schema to convert.
  */
-export function toGraphQLAST(schema: GraphQLSchema): gql.DocumentNode {
+export function toGraphQLAST(schema: GraphQLSchema<any, any, any>): gql.DocumentNode {
   return {
     kind: 'Document',
     definitions: [
-      ...Object.values(schema.graph).map((t) => typeDefinitionNode(t)),
+      ...Object.values(schema.graph).map((t) => typeDefinitionNode(t as RootNode)),
       schemaDefinition(schema),
     ]
   };
 }
 
-export function schemaDefinition(schema: GraphQLSchema): gql.SchemaDefinitionNode {
+export function schemaDefinition(schema: GraphQLSchema<any, any, any>): gql.SchemaDefinitionNode {
   const operationTypes: gql.OperationTypeDefinitionNode[] = [operationTypeDefinition('query', schema.query.root.id)];
   if (schema.mutation !== undefined) {
     operationTypes.push(operationTypeDefinition('mutation', schema.mutation.root.id));
@@ -46,7 +46,7 @@ export function schemaDefinition(schema: GraphQLSchema): gql.SchemaDefinitionNod
   }
 }
 
-export function typeDefinitionNode(node: GraphQLNode): gql.TypeDefinitionNode {
+export function typeDefinitionNode(node: RootNode): gql.TypeDefinitionNode {
   if (node.type === 'interface' || node.type === 'type') {
     const interfaces = node.type === 'interface' ? node.interfaces : node.interfaces;
     return {

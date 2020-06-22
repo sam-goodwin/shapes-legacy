@@ -23,14 +23,15 @@
     "client"
   ],
   "dependencies": {
+    "@apollo/client": "3.0.0-rc.6",
     "@shapes/graphql": "^0.0.0",
-    "graphql": "^15.0.0",
-    "@apollo/client": "3.0.0-rc.6"
+    "graphql": "^15.0.0"
   },
   "devDependencies": {
-    "sinon": "^9.0.0",
+    "@types/react": "^16.0.0",
+    "@types/sinon": "^9.0.0",
     "react": "^16.0.0",
-    "@types/react": "^16.0.0"
+    "sinon": "^9.0.0"
   },
   "publishConfig": {
     "access": "public"

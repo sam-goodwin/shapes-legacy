@@ -1,8 +1,10 @@
 import 'jest';
 
+import sinon = require('sinon');
+
 import * as gql from '@shapes/graphql';
-import { ShapeClient, useShapeQuery } from '../src';
 import { GraphQLSchemaBuilder } from '@shapes/graphql';
+import { ShapeClient } from '../src';
 
 export const schema = new GraphQLSchemaBuilder()
   .type({
@@ -24,26 +26,43 @@ export const schema = new GraphQLSchemaBuilder()
   });
 
 
-const mockClient: any = {};
+// const query = schema.query.compile({id: gql.ID["!"]}, ({id}, q) => q
+//   .getA({id}, (a) => a
+//     .id()
+//   )
+// );
 
-const client = new ShapeClient({
-  schema,
-  apolloClient: mockClient
-});
+// export const {data, error, loading} = useShapeQuery(query, {
+//   variables: {
+//     id: 'id'
+//   }
+// });
 
-const query = schema.query.compile({id: gql.ID["!"]}, ({id}, q) => q
-  .getA({id}, (a) => a
-    .id()
-  )
-);
-
-export const {data, error, loading} = useShapeQuery(query, {
-  variables: {
-    id: 'id'
-  }
-});
-
-it('should proxy calls to the Apollo Client', () => {
+it('should proxy calls to the Apollo Client', async () => {
+  const mockClient = {
+    query: sinon.fake.resolves({
+      data: {
+        getA: {
+          id: 'id'
+        }
+      }
+    })
+  };
+  
+  const client = new ShapeClient({
+    schema,
+    apolloClient: mockClient as any
+  });
   // TODO
-  expect(1).toEqual(1);
+  const a = await client.query((root) => root
+    .getA({id: 'id'}, (a) => a
+      .id()
+    )
+  );
+
+  if (a.data) {
+    expect(a.data.getA.id).toEqual('id');
+  } else {
+    fail('data was undefined');
+  }
 });

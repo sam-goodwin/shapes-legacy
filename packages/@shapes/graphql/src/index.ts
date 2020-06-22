@@ -10,10 +10,26 @@ export {
   String,
 } from './ast';
 
-export * as AST from './ast';
-export { CompiledGqlQuery, CompiledVariableGqlQuery, QueryCompiler } from './query';
-export { GraphQLSchema, GraphQLSchemaBuilder } from './schema';
 export {
   printGraphQLSchema,
   toGraphQLAST
 } from './to-graphql';
+
+export * as AST from './ast';
+
+export {
+  GqlResult,
+  GqlResultType,
+} from './selector';
+
+export {
+  CompiledGqlQuery,
+  CompiledVariableGqlQuery,
+  GqlRoot,
+  QueryCompiler
+} from './query';
+
+export {
+  GraphQLSchema,
+  GraphQLSchemaBuilder
+} from './schema';
