@@ -15,7 +15,7 @@
   "author": "Sam Goodwin <sam.goodwin1989@gmail.com>",
   "license": "Apache-2.0",
   "dependencies": {
-    "graphql": "^14.0.0"
+    "graphql": "^15.0.0"
   },
   "main": "cjs/index.js",
   "module": "esm/index.js",

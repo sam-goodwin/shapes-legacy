@@ -29,9 +29,9 @@ export function toGraphQLAST(schema: GraphQLSchema): gql.DocumentNode {
 }
 
 export function schemaDefinition(schema: GraphQLSchema): gql.SchemaDefinitionNode {
-  const operationTypes: gql.OperationTypeDefinitionNode[] = [operationTypeDefinition('query', schema.query)];
+  const operationTypes: gql.OperationTypeDefinitionNode[] = [operationTypeDefinition('query', schema.query.root.id)];
   if (schema.mutation !== undefined) {
-    operationTypes.push(operationTypeDefinition('mutation', schema.mutation));
+    operationTypes.push(operationTypeDefinition('mutation', schema.mutation.root.id));
   }
   return {
     kind: 'SchemaDefinition',

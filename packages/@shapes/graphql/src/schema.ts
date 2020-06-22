@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable tsdoc/syntax */
 import { EnumTypeNode, GraphQLAST, InputTypeNode, InterfaceTypeNode, RequestTypeNodes, ReturnTypeNodes, TypeNode, UnionTypeNode } from './ast';
+import { QueryCompiler } from './query';
 import { RowLacks } from './util';
 
 /**
@@ -24,16 +25,15 @@ export interface GraphQLSchema<
    * Map of all types in the GraphQL Schema.
    */
   readonly graph: Graph;
+
   /**
-   * ID of the type which is the root of the Query API.
+   * Compiler for constructing type-safe GraphQL queries.
    */
-  readonly query: Query;
+  readonly query: QueryCompiler<Graph, Extract<Graph[Query], TypeNode>>;
   /**
-   * ID of the type which is the root of the Mutation API.
-   *
-   * @default undefined
+   * Compiler for constructing type-safe GraphQL mutations (if defined).
    */
-  readonly mutation?: Mutation;
+  readonly mutation: Mutation extends keyof Graph ? QueryCompiler<Graph, Extract<Graph[Mutation], TypeNode>> : undefined;
 }
 
 /**
@@ -73,8 +73,8 @@ export class GraphQLSchemaBuilder<G extends GraphQLAST = {}> {
   }): GraphQLSchema<G, Q, M> {
     return {
       graph: this.graph,
-      mutation: props.mutation!,
-      query: props.query
+      mutation: (props.mutation ? new QueryCompiler(this.graph, this.graph[props.mutation!] as any) : undefined) as any,
+      query: new QueryCompiler(this.graph, this.graph[props.query] as any)
     };
   }
 

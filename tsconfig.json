@@ -3,6 +3,9 @@
   "references": [
     {
       "path": "./packages/@shapes/graphql/tsconfig.json"
+    },
+    {
+      "path": "./packages/@shapes/graphql-apollo-client/tsconfig.json"
     }
   ]
 }

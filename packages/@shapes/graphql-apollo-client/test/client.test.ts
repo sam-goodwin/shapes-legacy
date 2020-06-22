@@ -1,6 +1,6 @@
 import 'jest';
 
-import *  as gql from '@shapes/graphql';
+import * as gql from '@shapes/graphql';
 import { ShapeClient, useShapeQuery } from '../src';
 import { GraphQLSchemaBuilder } from '@shapes/graphql';
 
@@ -23,6 +23,7 @@ export const schema = new GraphQLSchemaBuilder()
     query: 'Query'
   });
 
+
 const mockClient: any = {};
 
 const client = new ShapeClient({
@@ -30,7 +31,7 @@ const client = new ShapeClient({
   apolloClient: mockClient
 });
 
-const query = client.queryCompiler.compile({id: gql.ID["!"]}, ({id}, q) => q
+const query = schema.query.compile({id: gql.ID["!"]}, ({id}, q) => q
   .getA({id}, (a) => a
     .id()
   )

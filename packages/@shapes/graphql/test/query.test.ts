@@ -23,10 +23,8 @@ const schema = schemaBuilder
   })
 ;
 
-const queryCompiler = new gql.QueryCompiler(schema.graph, schema.graph.Query);
-
 it('should compile a query to GraphQL AST', () => {
-  const query = queryCompiler.compile('A', { id: gql.ID["!"] }, ({ id }, root) => root
+  const query = schema.query.compile('A', { id: gql.ID["!"] }, ({ id }, root) => root
     .getAnimal({ id }, (person) => person
       .id()
       .name()

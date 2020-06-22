@@ -273,7 +273,7 @@ export function isTypeNode(node: GraphQLNode): node is TypeNode {
 
 export function assertIsTypeNode(node: GraphQLNode): asserts node is TypeNode {
   if (!isTypeNode(node)) {
-    throw new Error(`expected a type node, got: ${node.type}`);
+    throw new Error(`expected a type node, got: ${node.type}, ${JSON.stringify(node)}`);
   }
 }
 

@@ -10,13 +10,13 @@ import { print } from 'graphql/language/printer';
  * Type-safe interface for compiling GraphQL queries.
  */
 export class QueryCompiler<G extends GraphQLAST, Root extends TypeNode> {
-  public readonly rootBuilder: SelectionSetBuilderType;
+  private readonly rootBuilder: SelectionSetBuilderType;
 
   constructor(
     /**
      * GraphQL type-system.
      */
-    public readonly graph: G,
+    graph: G,
     /**
      * Root type of the query/mutation API.
      */
