@@ -1,0 +1,40 @@
+{
+  "name": "@shapes/graphql-apollo-client",
+  "version": "0.0.0",
+  "description": "Type-Safe Wrapper of the Apollo GraphQL Client",
+  "author": "Sam Goodwin <sam.goodwin1989@gmail.com>",
+  "license": "Apache-2.0",
+  "private": false,
+  "main": "cjs/index.js",
+  "module": "esm/index.js",
+  "types": "esm/index.d.ts",
+  "files": [
+    "cjs",
+    "esm",
+    "README.md"
+  ],
+  "bugs": "https://github.com/punchcard/shapes/issues",
+  "keywords": [
+    "shapes",
+    "punchcard",
+    "type-safe",
+    "graphql",
+    "apollo",
+    "client"
+  ],
+  "dependencies": {
+    "@shapes/graphql": "^0.0.0",
+    "@apollo/client": "3.0.0-rc.6"
+  },
+  "devDependencies": {
+    "sinon": "^9.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "directory": "packages/@shapes/graphql",
+    "type": "git",
+    "url": "https://github.com/punchcard/shapes"
+  }
+}

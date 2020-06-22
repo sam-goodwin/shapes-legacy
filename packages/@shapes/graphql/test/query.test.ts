@@ -1,6 +1,6 @@
 import 'jest';
-
 import * as gql from '../src';
+
 import { schemaBuilder } from './schema';
 
 const schema = schemaBuilder
@@ -8,6 +8,7 @@ const schema = schemaBuilder
     Query: {
       fields: {
         getAnimal: gql.Function({ id: gql.ID["!"] }, _.Animal),
+        dogs: gql.List(_.Dog)
       }
     },
     Mutation: {
@@ -20,15 +21,12 @@ const schema = schemaBuilder
     query: 'Query',
     mutation: 'Mutation'
   })
-  ;
+;
 
-const client = new gql.Client({
-  schema,
-  apiUrl: 'http://example.com'
-});
+const queryCompiler = new gql.QueryCompiler(schema.graph, schema.graph.Query);
 
 it('should compile a query to GraphQL AST', () => {
-  const query = client.queryCompiler.compile('A', { id: gql.ID["!"] }, ({ id }, root) => root
+  const query = queryCompiler.compile('A', { id: gql.ID["!"] }, ({ id }, root) => root
     .getAnimal({ id }, (person) => person
       .id()
       .name()
@@ -51,6 +49,9 @@ it('should compile a query to GraphQL AST', () => {
       .$on('Bird', (bird) => bird
         .tweets())
     )
+    .dogs((dog) => dog
+      .id()
+      .bark())
   );
   expect(query.query).toEqual(`query A($id: ID!) {
   getAnimal(id: $id) {
@@ -86,6 +87,10 @@ it('should compile a query to GraphQL AST', () => {
     ... on Bird {
       tweets
     }
+  }
+  dogs {
+    id
+    bark
   }
 }`)
   expect(query.queryAST).toEqual({
@@ -352,6 +357,32 @@ it('should compile a query to GraphQL AST', () => {
             ],
           },
         },
+        {
+         "kind": "Field",
+         "name": {
+           "kind": "Name",
+           "value": "dogs",
+         },
+         "selectionSet": {
+           "kind": "SelectionSet",
+           "selections": [
+             {
+               "kind": "Field",
+               "name": {
+                 "kind": "Name",
+                 "value": "id",
+               },
+             },
+             {
+               "kind": "Field",
+               "name": {
+                 "kind": "Name",
+                 "value": "bark",
+               },
+             },
+           ],
+         },
+       },
       ],
     },
     "variableDefinitions": [

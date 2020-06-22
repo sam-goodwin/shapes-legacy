@@ -10,9 +10,9 @@ export {
   String,
 } from './ast';
 
-export { Client } from './client';
-export { QueryCompiler } from './query';
-export { SchemaBuilder } from './schema';
+export * as AST from './ast';
+export { CompiledGqlQuery, CompiledVariableGqlQuery, QueryCompiler } from './query';
+export { GraphQLSchema, GraphQLSchemaBuilder } from './schema';
 export {
   printGraphQLSchema,
   toGraphQLAST

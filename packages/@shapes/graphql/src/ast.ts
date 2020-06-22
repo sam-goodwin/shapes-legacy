@@ -47,13 +47,13 @@ export namespace GraphQLAST {
    * Get fields inherited from a type/interface's implemented/extended interfaces.
    */
   export type GetInheritedFields<G extends GraphQLAST, T extends keyof G> =
-    G[T] extends TypeNode<string, infer F1, infer Implements> | InterfaceTypeNode<any, infer F1, infer Implements> ?
+    G[T] extends TypeNode<string, infer F1, infer Implements> | InterfaceTypeNode<string, infer F1, infer Implements> ?
       Implements extends undefined ? F1 :
       Implements extends (keyof G)[] ?
         UnionToIntersection<{
           [k in Implements[Extract<keyof Implements, number>]]:
             G[k] extends InterfaceTypeNode<any, infer F2, infer Extends> ?
-              Extends extends undefined ? F1 :
+              Extends extends undefined ? F1 & F2 :
               Extends extends (keyof G)[] ? F1 & F2 & GetInheritedFields<G, Extends[Extract<keyof Extends, number>]> :
               F1 & F2 :
             F1
@@ -130,12 +130,19 @@ export type RequestTypeNode = (
 
 class BaseType {
   public readonly required: boolean = false;
-  public get ['!'](): this & {required: true;} {
+  public get ['!'](): this & {
+    required: true
+  } {
     return {
       ...this,
       required: true
     } as const;
   }
+}
+
+
+export function isScalarTypeNode(node: any): node is ScalarTypeNode {
+  return node && node.type === 'scalar';
 }
 
 export class ScalarType<ID extends string> extends BaseType {
@@ -145,10 +152,6 @@ export class ScalarType<ID extends string> extends BaseType {
   ) {
     super();
   }
-}
-
-export function isScalarTypeNode(node: any): node is ScalarTypeNode {
-  return node && node.type === 'scalar';
 }
 
 export type ScalarTypeNode =

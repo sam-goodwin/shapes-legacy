@@ -1,6 +1,6 @@
 import * as gql from '../src';
 
-export const schemaBuilder = new gql.SchemaBuilder()
+export const schemaBuilder = new gql.GraphQLSchemaBuilder()
   .enum({
     Direction: {
       UP: 'UP',
