@@ -1,6 +1,6 @@
 # Shapes
 
-Shapes is a library for defining TypeScript-native schemas and APIs. Instead of custom Schema Definition Languages (SDLs) and code generators, Shapes define APIs and derive API client interfaces on the fly within a native TypeScript environment.
+Shapes is a library for defining TypeScript-native schemas and APIs. Instead of custom Schema Definition Languages (SDLs) and code generators (e.g. Prisma, Swagger, OpenAPI, etc.), Shapes define APIs and derive client interfaces entirely within a native TypeScript environment.
 
 # @shapes/graphql
 
@@ -15,17 +15,9 @@ npm install --save @shapes/graphql
 npm install --save @shapes/graphql-apollo-client
 ```
 
-## Quick Start
+## Schemas
 
-GraphQL Schemas are defined natively within TypeScript.
-
-<details>
-  <summary>Click to see demo!</summary>
-  
-  ![Query Building Demo](demo/schema.gif)
-</details>
-
-The `GraphQLSchemaBuilder` type provides methods for incrementally defining types in a GraphQL schema. 
+GraphQL Schemas are created with a `GraphQLSchemaBuilder`:
 
 ```ts
 import gql = require('@shapes/graphql');
@@ -62,8 +54,203 @@ schema {
 }
 ```
 
-Shape queries are designed to mirror the native GraphQL syntax:
+<details>
+  <summary>Click to see a demo of the experience!</summary>
+  
+  ![Query Building Demo](demo/schema.gif)
+</details>
+
+### Scalar Types
+
+Scalar types such as `ID`, `String`, `Int`, `Float` and `Bool` are constants available in `@shapes/graphql`. Use these values as fields when defining your own types.
+
+### Required Fields
+
+In ordinary GraphQL, fields are nullable by default and marked as required with the `!` (bang operator). Shapes is the same. All types expose a `['!']` getter which returns that same type, marked as required.
+
 ```ts
+gql.String // String - optional string
+gql.String['!'] // String! - required string
+```
+
+### Types (User-Defined)
+
+Types are created with the `type` builder method. Each object entry represents a new type to be created.
+
+```ts
+import gql = require('@shapes/graphql');
+
+schema.type({
+  // The keys in the object are the type names.
+  MyType: {
+    // fields are an object of field names and GraphQL types.
+    fields: {
+      // a scalar field with GraphQL type: `ID!`
+      id: gql.ID['!'],
+      // a list of integers: `[Int]`
+      list: gql.List(gql.Int)
+    }
+  }
+})
+```
+
+This TypeScript code is equivalent to the following GraphQL document:
+```gql
+type MyType {
+  id: ID!
+  list: [Int]
+}
+```
+
+### Referencing other Types as fields.
+
+The `type` builder method can accept a function to create new types. The `GraphQLSchemaBuilder` will pass in a reference to all previously defined types in the schema so you can use them as fields.
+
+```ts
+// previously defined types are passed in to your lambda
+schema.type(_ => ({
+  OtherType: {
+    fields: {
+      myType: _.MyType // reference a previously defined type
+    }
+  }
+}))
+```
+
+### Self-Type
+A type can also circularly reference itself with the special `Self` type:
+
+```ts
+// previously defined types are passed in to your lambda
+schema.type(_ => ({
+  Type: {
+    fields: {
+      // circularly reference `Type`
+      mySelf: gql.Self
+    }
+  }
+}))
+```
+
+### Circular References
+Sometimes you need to reference a type that hasn't yet been defined. For example, when two types reference each other (`A => B` and `B => A`). To form this relationship, use the `$` (read: "reference") helper to create a forward-reference to a type by its name. 
+
+```ts
+schema
+  .type({
+    A: {
+      fields: {
+        b: gql.$('B') // forward reference to a not-yet-defined type.
+      }
+    }
+  })
+  .type(_ => ({
+    // the referenced type, `B`.
+    B: {
+      fields: {
+        a: _.A // reference to a previously defined type.
+      }
+    }
+  }))
+```
+
+### Interfaces
+
+Interfaces in GraphQL define common fields re-used across types.
+
+```gql
+interface Animal {
+  name: String!
+}
+```
+
+This GQL interface is created by calling the `interface` builder method:
+
+```ts
+.interface({
+  // defining a new interface named Animal
+  Animal: {
+    fields: {
+      // it has one field, `name`, of type `String!`
+      name: gql.String['!']
+    }
+  }
+});
+```
+
+GraphQL types can then implement zero, one or many interfaces:
+```gql
+type Dog implements Animal {
+  name: String!
+  bark: String
+}
+```
+
+This declaration is achieved in Shapes by providing a list of interface names "implemented" by a type.
+```ts
+.type({
+  Dog: {
+    // this type implemented the Animal interface
+    implements: ['Animal'],
+    fields: {
+      // adding an additional field specific to Dog
+      bark: gql.String
+    }
+  }
+});
+```
+
+Interfaces in GraphQL can also "extend" other interfaces.
+```gql
+interface Bird extends Animal {
+  tweet: String
+}
+```
+
+Just like when "implementing" an interface, you can optionally provide a list of interfaces "extended" by an interface:
+```ts
+.interface({
+  Bird: {
+    // Bird is an interface that extends the Animal interface
+    extends: ['Animal'],
+    fields: {
+      // adding an additional field specific to Bird
+      tweet: gql.String
+    }
+  }
+});
+```
+
+### Root Types (query, mutation and subscription)
+
+To finalize the schema, you must call `build` and provide the IDs of the API's root types: `query`, `mutation` and `subscription`.
+
+```ts
+schema.build({
+  query: 'QueryTypeName',
+  mutation: 'MutationTypeName',
+  subscription: 'SubscriptionTypeName'
+})
+```
+
+This step is equivalent to the `schema` section in a GraphQL document:
+```gql
+schema {
+  Query: QueryTypeName,
+  Mutation: MutationTypeName,
+  Subscroption: SubscroptionTypeName,
+}
+```
+
+*Note*: Only `query` is mandatory - `mutation` and `subscription` are optional, as per the GraphQL specification.
+
+## Queries
+
+Queries are designed to mirror the native GraphQL syntax. After creating a schema, you can compile queries for it by accessing the `query`, `mutation` or `subscrive` members.
+
+```ts
+const schema = new GraphQLSchemaBuilder().type(..).build(..);
+
 // type-safe GraphQL query
 const query = schema.query.compile(root => root
   .id()
@@ -71,7 +258,7 @@ const query = schema.query.compile(root => root
 );
 ```
 
-The TypeScript syntax is equivalent to this GraphQL document:
+This syntax is equivalent to the following GraphQL document:
 ```gql
 query {
   id
@@ -79,7 +266,10 @@ query {
 }
 ```
 
-The `@shapes/graphql-apollo-client` library extends the `@apollo/client` with type-safe wrappers of its client and react hooks:
+## Clients
+The core module, `@shapes/graphql`, does not provide any way to query a live GraphQL server. It is for building schemas and synthesizing GraphQL documents for use in existing GraphQL client implementations.
+
+`@shapes/graphql-apollo-client` is an integration with the popular `@apollo/client` library, extending its client and react hooks with Shape's type-safe capabilities.
 
 1. `ShapeClient` wraps the `ApolloClient` with safe methods: `query`, `mutate` and `subscribe`.
 ```ts
@@ -133,164 +323,3 @@ function MyComponent() {
   return (<p>Hello ${data.name}</p>)
 }
 ```
-
-### Scalar Types
-
-Scalar types such as `ID`, `String`, `Int`, `Float` and `Bool` are constants available in `@shapes/graphql`. Use these values as fields when defining your own types.
-
-### Required Fields
-
-In ordinary GraphQL, fields are nullable by default and marked as required with the `!` (bang operator). Shapes is the same. All types expose a `['!']` getter which returns that same type, marked as required.
-
-```ts
-gql.String // String - optional string
-gql.String['!'] // String! - required string
-```
-
-### Types
-
-Types are defined with the `type` builder method - it accepts an object where each key represents the type's name and its fields are provided as properties.
-
-```ts
-import gql = require('@shapes/graphql');
-
-schema.type({
-  // The keys in the object are the type names.
-  MyType: {
-    // fields are an object of field names and GraphQL types.
-    fields: {
-      // a simple field with GraphQL type: `ID!`
-      id: gql.ID['!'],
-      // a list of integers: `[Int]`
-      list: gql.List(gql.Int)
-    }
-  }
-})
-```
-
-This TypeScript code is equivalent to the following GraphQL:
-```gql
-type MyType {
-  id: ID!
-  list: [Int]
-}
-```
-
-### Interfaces
-
-Interfaces in GraphQL define common fields re-used across types.
-
-```gql
-interface Animal {
-  name: String!
-}
-
-type Dog implements Animal {
-  name: String!
-  bark: String
-}
-```
-
-You create interfaces in Shapes similarly to types:
-```ts
-schema
-  .interface({
-    Animal: {
-      fields: {
-        name: gql.String['!']
-      }
-    }
-  })
-  .type({
-    Dog: {
-      implements: ['I'],
-      fields: {
-        bark: gql.String
-      }
-    }
-  })
-```
-
-
-
-
-
-
-
-
-### Root Types (query, mutation and subscription)
-
-To finalize the schema, you must call `build` and provide the IDs of the API's root types: Query, Mutation and Subscription.
-
-```ts
-schema.build({
-  query: 'MyType'
-})
-```
-
-This step is equivalent to the `schema` section in a GraphQL document:
-```gql
-schema {
-  Query: MyType
-}
-```
-
-*Note*: Only `query` is mandatory. `mutation` and `subscription` are optional, as per the GraphQL specification.
-
-### Referencing other Types as fields.
-
-Previously defined types can be accessed when defining a type:
-
-```ts
-// previously defined types are passed in to your lambda
-schema.type(_ => ({
-  OtherType: {
-    fields: {
-      myType: _.MyType // reference a previously defined type
-    }
-  }
-}))
-```
-
-A type can also circularly reference itself via the special `Self` type:
-
-```ts
-// previously defined types are passed in to your lambda
-schema.type(_ => ({
-  Type: {
-    fields: {
-      // circularly reference myself
-      mySelf: gql.Self
-    }
-  }
-}))
-```
-
-Sometimes you need to reference a type that hasn't yet been defined. For example,
-when two types reference each other (`A => B` and `B => A`). To form this relationship,
-use the `$` (read: 'reference') helper to create a forward-reference to a type by its name. 
-
-```ts
-schema
-  .type({
-    A: {
-      fields: {
-        b: gql.$('B') // forward reference to a not-yet-defined type.
-      }
-    }
-  })
-  .type(_ => ({
-    // the referenced type, B.
-    B: {
-      fields: {
-        a: _.A // safe reference to a previously defined type.
-      }
-    }
-  }))
-```
-
-### Build a Schema
-
-To finalize a schema, 
-
-
