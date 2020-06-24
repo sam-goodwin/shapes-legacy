@@ -33,6 +33,8 @@
   "root": true,
   "rules": {
     "unicorn/no-reduce": "off",
+    "unicorn/no-null": "off",
+    "no-null/no-null": "off",
     "@typescript-eslint/ban-ts-ignore": "off",
     "@typescript-eslint/explicit-function-return-type": "off",
     "@typescript-eslint/interface-name-prefix": "off",
@@ -50,7 +52,7 @@
     "arrow-parens": ["error", "always"],
     "import/order": "off",
     "no-inner-declarations": "off",
-    "no-null/no-null": "error",
+    // "no-null/no-null": "error",
     "sort-class-members/sort-class-members": [
       "error",
       {

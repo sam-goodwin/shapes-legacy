@@ -6,7 +6,10 @@ import { useShapeQuery } from '../src';
 
 import renderer = require('react-test-renderer');
 
-const schema = new gql.GraphQLSchemaBuilder()
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const wait = require('waait');
+
+const schema = new gql.ShapeSchemaBuilder()
   .type({
     Query: {
       fields: {
@@ -38,7 +41,7 @@ function ShapeComponent() {
   )
 }
 
-it('should', () => {
+it('should', async () => {
   const mocks = [{
     request: {
       query: getPerson.queryAST,
@@ -58,6 +61,20 @@ it('should', () => {
   expect(component.toJSON()).toEqual({
     children: [
       "Loading...",
+    ],
+    props: {},
+    type: "p",
+  });
+
+  await wait(0);
+
+  expect(component.toJSON()).toEqual({
+    children: [
+      "Hello $",
+      "sam",
+      " you are $",
+      "31",
+      " years old.",
     ],
     props: {},
     type: "p",

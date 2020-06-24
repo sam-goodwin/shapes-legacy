@@ -5,7 +5,7 @@ import { GqlResult, GqlRoot } from '@shapes/graphql';
 /**
  * Props for cponstructing a new `ShapeApolloClient`.
  */
-export interface ShapeClientProps<TSchema extends gql.GraphQLSchema<any, any, any>, TCacheShape = any> {
+export interface ShapeClientProps<TSchema extends gql.ShapeSchema<any, any, any>, TCacheShape = any> {
   /**
    * GraphQL Schema.
    */
@@ -19,7 +19,7 @@ export interface ShapeClientProps<TSchema extends gql.GraphQLSchema<any, any, an
 /**
  * Provides a type-safe interface over an `ApolloClient`, given a GraphQL Schema.
  */
-export class ShapeClient<TSchema extends gql.GraphQLSchema<any, any, any>, TCacheShape = any> {
+export class ShapeClient<TSchema extends gql.ShapeSchema<any, any, any>, TCacheShape = any> {
   /**
    * Apollo Client for communicating with the GraphQL API.
    */

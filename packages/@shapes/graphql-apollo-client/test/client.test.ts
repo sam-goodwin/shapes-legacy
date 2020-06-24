@@ -3,10 +3,10 @@ import 'jest';
 import sinon = require('sinon');
 
 import * as gql from '@shapes/graphql';
-import { GraphQLSchemaBuilder } from '@shapes/graphql';
 import { ShapeClient } from '../src';
+import { ShapeSchemaBuilder } from '@shapes/graphql';
 
-export const schema = new GraphQLSchemaBuilder()
+export const schema = new ShapeSchemaBuilder()
   .type({
     A: {
       fields: {

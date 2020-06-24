@@ -1,6 +1,6 @@
 import * as gql from '../src';
 
-export const schemaBuilder = new gql.GraphQLSchemaBuilder()
+export const schemaBuilder = new gql.ShapeSchemaBuilder()
   .enum({
     Direction: {
       UP: 'UP',
@@ -18,7 +18,7 @@ export const schemaBuilder = new gql.GraphQLSchemaBuilder()
         dog: gql.$('Dog'),
         int: gql.Int,
         float: gql.Float,
-        bool: gql.Bool,
+        bool: gql.Boolean,
         list: gql.List(gql.Int),
         complexList: gql.List(gql.Self),
         fn: gql.Function({a: gql.ID}, gql.Self["!"]),
@@ -36,7 +36,7 @@ export const schemaBuilder = new gql.GraphQLSchemaBuilder()
     Bird: {
       implements: ['Animal'],
       fields: {
-        tweets: gql.Bool["!"]
+        tweets: gql.Boolean["!"]
       }
     }
   }))

@@ -1,6 +1,6 @@
 export {
   $,
-  Boolean as Bool,
+  Boolean,
   Float,
   Function,
   ID,
@@ -30,6 +30,6 @@ export {
 } from './query';
 
 export {
-  GraphQLSchema,
-  GraphQLSchemaBuilder
+  ShapeSchema,
+  ShapeSchemaBuilder
 } from './schema';

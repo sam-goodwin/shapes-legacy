@@ -28,12 +28,14 @@
     "graphql": "^15.0.0"
   },
   "devDependencies": {
-    "@types/react": "^16.0.0",
     "@types/react-test-renderer": "^16.9.2",
+    "@types/react": "^16.0.0",
     "@types/sinon": "^9.0.0",
+    "cross-fetch": "^3.0.5",
     "react-test-renderer": "^16.13.1",
     "react": "^16.0.0",
-    "sinon": "^9.0.0"
+    "sinon": "^9.0.0",
+    "waait": "^1.0.5"
   },
   "publishConfig": {
     "access": "public"

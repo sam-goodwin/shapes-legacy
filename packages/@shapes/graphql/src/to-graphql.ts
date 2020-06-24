@@ -1,6 +1,6 @@
 import type * as gql from 'graphql';
 import { InterfaceTypeNode, RequestTypeNode, ReturnTypeNode, RootNode, TypeNode, isFunctionNode } from './ast';
-import { GraphQLSchema } from './schema';
+import { ShapeSchema } from './schema';
 
 import { print } from 'graphql/language/printer';
 
@@ -9,7 +9,7 @@ import { print } from 'graphql/language/printer';
  *
  * @param schema - schema to print
  */
-export function printGraphQLSchema(schema: GraphQLSchema<any, any, any>): string {
+export function printGraphQLSchema(schema: ShapeSchema<any, any, any>): string {
   return print(toGraphQLAST(schema));
 }
 
@@ -18,7 +18,7 @@ export function printGraphQLSchema(schema: GraphQLSchema<any, any, any>): string
  *
  * @param schema - schema to convert.
  */
-export function toGraphQLAST(schema: GraphQLSchema<any, any, any>): gql.DocumentNode {
+export function toGraphQLAST(schema: ShapeSchema<any, any, any>): gql.DocumentNode {
   return {
     kind: 'Document',
     definitions: [
@@ -28,7 +28,7 @@ export function toGraphQLAST(schema: GraphQLSchema<any, any, any>): gql.Document
   };
 }
 
-export function schemaDefinition(schema: GraphQLSchema<any, any, any>): gql.SchemaDefinitionNode {
+export function schemaDefinition(schema: ShapeSchema<any, any, any>): gql.SchemaDefinitionNode {
   const operationTypes: gql.OperationTypeDefinitionNode[] = [operationTypeDefinition('query', schema.query.root.id)];
   if (schema.mutation !== undefined) {
     operationTypes.push(operationTypeDefinition('mutation', schema.mutation.root.id));

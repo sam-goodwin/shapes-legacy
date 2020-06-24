@@ -117,6 +117,13 @@ schema.type(_ => ({
 }))
 ```
 
+Equivalent GraphQL:
+```gql
+type OtherType {
+  myType: MyType
+}
+```
+
 ### Self-Type
 A type can also circularly reference itself with the special `Self` type:
 
@@ -130,6 +137,13 @@ schema.type(_ => ({
     }
   }
 }))
+```
+
+Equivalent GraphQL:
+```gql
+type Type {
+  mySelf: Type
+}
 ```
 
 ### Circular References
@@ -148,10 +162,21 @@ schema
     // the referenced type, `B`.
     B: {
       fields: {
-        a: _.A // reference to a previously defined type.
+        a: _.A['!'] // reference to a previously defined type.
       }
     }
   }))
+```
+
+Equivalent GraphQL:
+```gql
+type A {
+  b: B
+}
+
+type B {
+  a: A!
+}
 ```
 
 ### Interfaces
@@ -246,7 +271,7 @@ schema {
 
 ## Queries
 
-Queries are designed to mirror the native GraphQL syntax. After creating a schema, you can compile queries for it by accessing the `query`, `mutation` or `subscrive` members.
+Queries are designed to mirror the native GraphQL syntax. After creating a schema, you can compile queries for it by accessing the `query`, `mutation` or `subscription` "roots".
 
 ```ts
 const schema = new GraphQLSchemaBuilder().type(..).build(..);
