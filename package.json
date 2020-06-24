@@ -10,6 +10,16 @@
   "workspaces": [
     "packages/@shapes/*"
   ],
+  "scripts": {
+    "bootstrap": "yarn && yarn lerna bootstrap",
+    "lint": "eslint 'packages/**/*' --fix",
+    "build": "tsc -b",
+    "watch": "tsc -w",
+    "ex": "ts-node -P tsconfig.dev.json",
+    "test": "jest --coverage",
+    "build:reference": "typedoc",
+    "commit:reference": "git add docs/reference && git commit -m \"docs: rebuild API reference\""
+  },
   "devDependencies": {
     "@commitlint/cli": "^8.3.5",
     "@commitlint/config-conventional": "^8.3.4",
@@ -46,7 +56,8 @@
     "preset": "ts-jest",
     "testEnvironment": "node",
     "testMatch": [
-      "**/*.test.ts"
+      "**/*.test.ts",
+      "**/*.test.tsx"
     ],
     "testPathIgnorePatterns": [
       "node_modules"
@@ -63,15 +74,5 @@
       "pre-push": "yarn lint && yarn test && yarn build:reference && exitzero yarn commit:reference",
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
-  },
-  "scripts": {
-    "bootstrap": "yarn && yarn lerna bootstrap",
-    "lint": "eslint 'packages/**/*' --fix",
-    "build": "tsc -b",
-    "watch": "tsc -w",
-    "ex": "ts-node -P tsconfig.dev.json",
-    "test": "jest --coverage",
-    "build:reference": "typedoc",
-    "commit:reference": "git add docs/reference && git commit -m \"docs: rebuild API reference\""
   }
 }

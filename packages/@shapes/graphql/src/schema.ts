@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable tsdoc/syntax */
 import { EnumTypeNode, GraphQLAST, InputTypeNode, InterfaceTypeNode, RequestTypeNodes, ReturnTypeNodes, TypeNode, UnionTypeNode } from './ast';
+import { QueryCompiler } from './query';
 import { RowLacks } from './util';
 
 /**
  * A GraphQL Schema.
  */
-export interface Schema<
+export interface ShapeSchema<
   /**
    * Map of all types in the GraphQL Schema.
    */
@@ -24,22 +25,21 @@ export interface Schema<
    * Map of all types in the GraphQL Schema.
    */
   readonly graph: Graph;
+
   /**
-   * ID of the type which is the root of the Query API.
+   * Compiler for constructing type-safe GraphQL queries.
    */
-  readonly query: Query;
+  readonly query: QueryCompiler<Graph, Extract<Graph[Query], TypeNode>>;
   /**
-   * ID of the type which is the root of the Mutation API.
-   *
-   * @default undefined
+   * Compiler for constructing type-safe GraphQL mutations (if defined).
    */
-  readonly mutation?: Mutation;
+  readonly mutation: Mutation extends keyof Graph ? QueryCompiler<Graph, Extract<Graph[Mutation], TypeNode>> : undefined;
 }
 
 /**
  * Chained builder for constructing a type-safe GraphQL schema in native TypeScript.
  */
-export class SchemaBuilder<G extends GraphQLAST = {}> {
+export class ShapeSchemaBuilder<G extends GraphQLAST = {}> {
   public readonly graph: G;
   constructor(graph?: G) {
     this.graph = graph || {} as any;
@@ -70,11 +70,11 @@ export class SchemaBuilder<G extends GraphQLAST = {}> {
      * @default undefined
      */
     mutation?: M
-  }): Schema<G, Q, M> {
+  }): ShapeSchema<G, Q, M> {
     return {
       graph: this.graph,
-      mutation: props.mutation!,
-      query: props.query
+      mutation: (props.mutation ? new QueryCompiler(this.graph, this.graph[props.mutation!] as any) : undefined) as any,
+      query: new QueryCompiler(this.graph, this.graph[props.query] as any)
     };
   }
 
@@ -105,8 +105,8 @@ export class SchemaBuilder<G extends GraphQLAST = {}> {
    *
    * @param schema - other GraphQL schema to import.
    */
-  public import<S2 extends {graph: GraphQLAST}>(schema: S2): SchemaBuilder<G & S2['graph']> {
-    return new SchemaBuilder({
+  public import<S2 extends {graph: GraphQLAST}>(schema: S2): ShapeSchemaBuilder<G & S2['graph']> {
+    return new ShapeSchemaBuilder({
       ...this.graph,
       ...schema
     }) as any;
@@ -156,7 +156,7 @@ export class SchemaBuilder<G extends GraphQLAST = {}> {
    */
   public interface<I extends InterfaceDefinitions<G>>(
     interfaceDefinitions: RowLacks<I, keyof G> | ((schema: G) => I)
-  ): SchemaBuilder<G & {
+  ): ShapeSchemaBuilder<G & {
     [ID in Extract<keyof I, string>]: InterfaceTypeNode<
       ID,
       (
@@ -167,7 +167,7 @@ export class SchemaBuilder<G extends GraphQLAST = {}> {
       I[ID]['extends'] extends (keyof G)[] ? I[ID]['extends'] : undefined
     >;
   }> {
-    return new SchemaBuilder<any>({
+    return new ShapeSchemaBuilder<any>({
       ...this.graph,
       ...(Object.entries(typeof interfaceDefinitions === 'function' ? interfaceDefinitions(this.graph) : interfaceDefinitions).map(([ID, interfaceDef]) => ({
         [ID]: new InterfaceTypeNode(ID, interfaceDef.fields, interfaceDef.extends)
@@ -219,7 +219,7 @@ export class SchemaBuilder<G extends GraphQLAST = {}> {
    */
   public type<I extends TypeDefinitions<G>>(
     typeDefinitions: RowLacks<I, keyof G> | ((schema: G) => I)
-  ): SchemaBuilder<G & {
+  ): ShapeSchemaBuilder<G & {
     [ID in keyof I]: ID extends string ? TypeNode<
       ID,
       I[ID]['fields'] extends (...args: any[]) => ReturnTypeNodes ?
@@ -228,7 +228,7 @@ export class SchemaBuilder<G extends GraphQLAST = {}> {
       I[ID]['implements'] extends (keyof G)[] ? I[ID]['implements'] : undefined
     > : never;
   }> {
-    return new SchemaBuilder<any>({
+    return new ShapeSchemaBuilder<any>({
       ...this.graph,
       ...(Object.entries(typeof typeDefinitions === 'function' ? typeDefinitions(this.graph) : typeDefinitions).map(([ID, typeDef]) => ({
         [ID]: new TypeNode(ID, typeDef.fields, typeDef.implements)
@@ -260,7 +260,7 @@ export class SchemaBuilder<G extends GraphQLAST = {}> {
    */
   public input<I extends InputTypeDefinitions>(
     inputDefinitions: RowLacks<I, keyof G> | ((schema: G) => I)
-  ): SchemaBuilder<G & {
+  ): ShapeSchemaBuilder<G & {
     [ID in keyof I]: ID extends string ?
       InputTypeNode<
         ID,
@@ -270,7 +270,7 @@ export class SchemaBuilder<G extends GraphQLAST = {}> {
       > :
       never;
   }> {
-    return new SchemaBuilder({
+    return new ShapeSchemaBuilder({
       ...this.graph,
       ...(Object.entries(typeof inputDefinitions === 'function' ? inputDefinitions(this.graph) : inputDefinitions).map(([ID, fields]) => ({
         [ID]: new InputTypeNode(ID, fields)
@@ -289,10 +289,10 @@ export class SchemaBuilder<G extends GraphQLAST = {}> {
    *
    * @param union - map of union types
    */
-  public union<U extends UnionDefinitions<G>>(union: U): SchemaBuilder<G & {
+  public union<U extends UnionDefinitions<G>>(union: U): ShapeSchemaBuilder<G & {
     [ID in keyof U]: ID extends string ? UnionTypeNode<ID, U[ID]> : never;
   }> {
-    return new SchemaBuilder<any>({
+    return new ShapeSchemaBuilder<any>({
       ...this.graph,
       ...(Object.entries(union).map(([ID, u]) => ({
         [ID]: new UnionTypeNode(ID, u)
@@ -319,10 +319,10 @@ export class SchemaBuilder<G extends GraphQLAST = {}> {
    * ```
    * @param definitions - enum definitions
    */
-  public enum<D extends EnumDefinitions>(definitions: D): SchemaBuilder<G & {
+  public enum<D extends EnumDefinitions>(definitions: D): ShapeSchemaBuilder<G & {
     [ID in keyof D]: ID extends string ? EnumTypeNode<ID, D[ID]> : never;
   }> {
-    return new SchemaBuilder({
+    return new ShapeSchemaBuilder({
       ...this.graph,
       ...(Object.entries(definitions).map(([ID, v]) => ({
         [ID]: new EnumTypeNode(ID, v)

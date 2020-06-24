@@ -8,7 +8,7 @@
     "downlevelIteration": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "lib": ["DOM", "DOM.Iterable", "ESNext", "ES2019"],
     "moduleResolution": "node",
     "noEmit": false,
     "noImplicitAny": true,
@@ -22,9 +22,10 @@
     "strictFunctionTypes": true,
     "strictNullChecks": true,
     "strictPropertyInitialization": true,
-    "target": "ES2020",
+    "target": "ES2019",
     "typeRoots": ["packages/@shapes/*/node_modules", "node_modules/@types"],
-    "useDefineForClassFields": true
+    "useDefineForClassFields": true,
+    "jsx": "react"
   },
   "exclude": [
     "packages/**/cjs",

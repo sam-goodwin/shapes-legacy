@@ -1,7 +1,8 @@
-import { ArgumentNode, FieldNode, InlineFragmentNode, OperationDefinitionNode, SelectionNode, SelectionSetNode, ValueNode, VariableDefinitionNode } from 'graphql';
+import { ArgumentNode, DocumentNode, FieldNode, InlineFragmentNode, SelectionNode, SelectionSetNode, ValueNode, VariableDefinitionNode } from 'graphql';
 import { GqlResult, GqlResultType, Selector } from './selector';
-import { GraphQLAST, GraphQLNode, InputParameter, InterfaceTypeNode, RequestTypeNode, RequestTypeNodes, ReturnTypeNode, ReturnTypeNodes, TypeNode, UnionTypeNode, assertIsInterfaceTypeNode, assertIsTypeNode, assertIsTypeOrInterfaceNode, isFunctionNode, isInputParameter, isInputTypeNode, isInterfaceTypeNode, isListTypeNode, isPrimitiveType, isReferenceTypeNode, isRequestTypeNode, isScalarTypeNode, isSelfTypeNode, isTypeNode, isUnionTypeNode } from './ast';
-import { Value } from './value';
+import { GraphQLAST, InputParameter, InterfaceTypeNode, RequestTypeNode, RequestTypeNodes, ReturnTypeNode, ReturnTypeNodes, TypeNode, UnionTypeNode, assertIsInterfaceTypeNode, assertIsTypeNode, assertIsTypeOrInterfaceNode, isFunctionNode, isInputParameter, isInputTypeNode, isInterfaceTypeNode, isListTypeNode, isPrimitiveType, isReferenceTypeNode, isRequestTypeNode, isScalarTypeNode, isSelfTypeNode, isTypeNode, isUnionTypeNode } from './ast';
+import { Value, Values } from './value';
+import { KeysOfType } from './util';
 import { inputTypeNode } from './to-graphql';
 import { print } from 'graphql/language/printer';
 
@@ -9,13 +10,13 @@ import { print } from 'graphql/language/printer';
  * Type-safe interface for compiling GraphQL queries.
  */
 export class QueryCompiler<G extends GraphQLAST, Root extends TypeNode> {
-  public readonly rootBuilder: SelectionSetBuilderType;
+  private readonly rootBuilder: SelectionSetBuilderType;
 
   constructor(
     /**
      * GraphQL type-system.
      */
-    public readonly graph: G,
+    graph: G,
     /**
      * Root type of the query/mutation API.
      */
@@ -29,23 +30,23 @@ export class QueryCompiler<G extends GraphQLAST, Root extends TypeNode> {
    * Compiles an anonymous query.
    *
    * ```ts
-   * compiler.compiler(root => root
+   * compiler.compile(root => root
    *   .id()
    * );
    * ```
    * @param query - function which builds the query.
    */
   public compile<
-    Result extends GqlQueryResult
+    Result extends GqlResult
   >(
     query: (i: GqlRoot<G, Root>) => Result
-  ): CompiledGqlQuery<never, undefined, GetGqlQueryResult<Result>>;
+  ): CompiledGqlQuery<GqlResultType<Result>>;
 
   /**
    * Compiles a named query.
    *
    * ```ts
-   * compiler.compiler('QueryName', root => root
+   * compiler.compile('QueryName', root => root
    *   .id()
    * );
    * ```
@@ -55,17 +56,17 @@ export class QueryCompiler<G extends GraphQLAST, Root extends TypeNode> {
    */
   public compile<
     QueryName extends string,
-    Result extends GqlQueryResult
+    Result extends GqlResult
   >(
     queryName: QueryName,
     query: (root: GqlRoot<G, Root>) => Result
-  ): CompiledGqlQuery<undefined, GetGqlQueryResult<Result>>;
+  ): CompiledGqlQuery<GqlResultType<Result>>;
 
   /**
    * Compiles an anonymous query that accepts input parameters.
    *
    * ```ts
-   * compiler.compiler({id: gql.ID['!']}, ({id}, root) => root
+   * compiler.compile({id: gql.ID['!']}, ({id}, root) => root
    *   .getPerson({id}, person => person
    *     .name()
    *   )
@@ -77,21 +78,23 @@ export class QueryCompiler<G extends GraphQLAST, Root extends TypeNode> {
    */
   public compile<
     Parameters extends RequestTypeNodes,
-    Result extends GqlQueryResult
+    Result extends GqlResult
   >(
     parameters: Parameters,
     query: (parameters: {
       [parameterName in keyof Parameters]: InputParameter<Extract<parameterName, string>, Parameters[parameterName]>
     }, root: GqlRoot<G, Root>) => Result
-  ): CompiledGqlQuery<{
-    [parameterName in keyof Parameters]: Value<G, Parameters[parameterName]>;
-  }, GetGqlQueryResult<Result>>;
+  ): CompiledVariableGqlQuery<{
+    [arg in keyof Values<G, Parameters>]+?: Values<G, Parameters>[arg];
+  } & {
+    [arg in KeysOfType<Values<G, Parameters>, {required: true;}>]-?: Values<G, Parameters>[arg];
+  }, GqlResultType<Result>>;
 
   /**
    * Compiles a named query that also accepts input parameters.
    *
    * ```ts
-   * compiler.compiler('QueryName', {id: gql.ID['!']}, ({id}, root) => root
+   * compiler.compile('QueryName', {id: gql.ID['!']}, ({id}, root) => root
    *   .getPerson({id}, person => person
    *     .name()
    *   )
@@ -105,16 +108,18 @@ export class QueryCompiler<G extends GraphQLAST, Root extends TypeNode> {
   public compile<
     QueryName extends string,
     Parameters extends RequestTypeNodes,
-    Result extends GqlQueryResult
+    Result extends GqlResult
   >(
     queryName: QueryName,
     parameters: Parameters,
     query: (parameters: {
       [parameterName in keyof Parameters]: InputParameter<Extract<parameterName, string>, Parameters[parameterName]>
     }, root: GqlRoot<G, Root>) => Result
-  ): CompiledGqlQuery<{
-    [parameterName in keyof Parameters]: Value<G, Parameters[parameterName]>;
-  }, GetGqlQueryResult<Result>>;
+  ): CompiledVariableGqlQuery<{
+    [arg in keyof Values<G, Parameters>]+?: Values<G, Parameters>[arg];
+  } & {
+    [arg in KeysOfType<Values<G, Parameters>, {required: true;}>]-?: Values<G, Parameters>[arg];
+  }, GqlResultType<Result>>;
 
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   public compile(a: any, b?: any, c?: any): CompiledGqlQuery<any, any> {
@@ -139,7 +144,7 @@ export class QueryCompiler<G extends GraphQLAST, Root extends TypeNode> {
     }
     const inputParameters = Object.entries(parameters).map(([name, parameter]) => ({
       [name]: new InputParameter(name, parameter)
-    })).reduce((a, b) => ({...a, ...b}));
+    })).reduce((a, b) => ({...a, ...b}), {});
 
     const queryResult: SelectionSetBuilder = Object.keys(parameters).length === 0 ?
       (query as any)(new (this.rootBuilder)([])) :
@@ -150,69 +155,67 @@ export class QueryCompiler<G extends GraphQLAST, Root extends TypeNode> {
       selections: queryResult.$selections
     };
 
-    const operationDefinitionNode: OperationDefinitionNode = {
-      kind: 'OperationDefinition',
-      operation: 'query',
-      name: queryName === undefined ? undefined : {
-        kind: 'Name',
-        value: queryName
-      },
-      variableDefinitions: Object.entries(parameters).map(([name, parameter]) => ({
-        kind: 'VariableDefinition',
-        variable: {
-          kind: 'Variable',
-          name: {
-            kind: 'Name',
-            value: name
-          }
+    const documentNode: DocumentNode ={
+      kind: 'Document',
+      definitions: [{
+      
+        kind: 'OperationDefinition',
+        operation: 'query',
+        name: queryName === undefined ? undefined : {
+          kind: 'Name',
+          value: queryName
         },
-        type: inputTypeNode(parameter)
-      } as VariableDefinitionNode)),
-      selectionSet,
+        variableDefinitions: Object.entries(parameters).map(([name, parameter]) => ({
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: {
+              kind: 'Name',
+              value: name
+            }
+          },
+          type: inputTypeNode(parameter)
+        } as VariableDefinitionNode)),
+        selectionSet,
+      }]
     };
 
     return {
-      query: print(operationDefinitionNode),
-      queryAST: operationDefinitionNode,
-      parseQueryResponse(json) {
+      query: print(documentNode),
+      queryAST: documentNode,
+      parseQueryResponse(json: any): any {
         // TODO
         return json;
       },
-      serializeParameters(input) {
+      serializeParameters(input: any): any {
         // TODO
         return input;
       }
-    };
+    } as any;
   }
 }
 
 export interface CompiledGqlQuery<
-  Parameters,
   Output,
-  OperationNode extends OperationDefinitionNode = OperationDefinitionNode
+  Document extends DocumentNode = DocumentNode
 > {
   query: string;
-  queryAST: OperationNode;
+  queryAST: Document;
   parseQueryResponse(json: any): Output;
-  serializeParameters(input: Parameters): any;
+  serializeParameters: never;
+}
+export interface CompiledVariableGqlQuery<
+  Variables,
+  Output,
+  Document extends DocumentNode = DocumentNode
+> {
+  query: string;
+  queryAST: Document;
+  parseQueryResponse(json: any): Output;
+  serializeParameters(input: Variables): any;
 }
 
-export type GqlRoot<Graph extends GraphQLAST, Root extends TypeNode> = {
-  [field in keyof GraphQLAST.GetInheritedFields<Graph, Root['id']>]: Selector<
-    Graph,
-    Extract<GraphQLAST.GetInheritedFields<Graph, Root['id']>[field], GraphQLNode>,
-    Root['id']
-  >
-};
-
-type GqlQueryResult = GqlResult | Record<string, GqlResult>;
-type GetGqlQueryResult<U extends GqlQueryResult> =
-  U extends GqlResult<infer T> ? T :
-  U extends Record<string, GqlResult> ? {
-    [alias in keyof U]: GqlResultType<U[alias]>
-  } :
-  never
-;
+export type GqlRoot<Graph extends GraphQLAST, Root extends TypeNode> = Selector<Graph, Root, Root['id']>;
 
 export interface SelectionSetBuilder {
   $selections: SelectionNode[];
@@ -403,14 +406,14 @@ function valueNode<
   Graph extends GraphQLAST,
   T extends RequestTypeNode
 >(graph: Graph, argType: T, value: Value<Graph, T> | InputParameter<string, T>): ValueNode {
-  if (argType.required === false && value === undefined) {
+  if (argType.required !== true && value === undefined) {
     return {
       kind: 'NullValue',
     };
+  } else if (argType.required === true && value === undefined) {
+    throw new Error(`argument type is required: ${argType.id!}`);
   }
-  if (argType.required === true && value === undefined) {
-    throw new Error(`argument is required: ${argType.id!}`);
-  }
+
   if (isInputParameter(value)) {
     return {
       kind: 'Variable',

@@ -15,11 +15,10 @@ export type Value<
   Graph extends GraphQLAST,
   Node extends GraphQLNode,
   Self extends keyof Graph = never
-> =
-  Node extends { required: true; } ?
-    _Value<Graph, Node, Self> :
-    undefined | _Value<Graph, Node, Self>
-;
+> = (Node['required'] extends true ?
+  _Value<Graph, Node, Self> :
+  undefined | _Value<Graph, Node, Self>
+);
 
 type _Value<
   Graph extends GraphQLAST,
