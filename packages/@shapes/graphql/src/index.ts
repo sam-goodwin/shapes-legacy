@@ -33,3 +33,8 @@ export {
   ShapeSchema,
   ShapeSchemaBuilder
 } from './schema';
+
+export {
+  Value,
+  Values
+} from './value';

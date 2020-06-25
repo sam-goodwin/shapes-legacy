@@ -14,7 +14,7 @@
     "bootstrap": "yarn && yarn lerna bootstrap",
     "lint": "eslint 'packages/**/*' --fix",
     "build": "tsc -b",
-    "watch": "tsc -w",
+    "watch": "tsc --build --watch",
     "ex": "ts-node -P tsconfig.dev.json",
     "test": "jest --coverage",
     "build:reference": "typedoc",

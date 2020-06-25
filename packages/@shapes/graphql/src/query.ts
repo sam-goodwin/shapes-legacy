@@ -359,7 +359,7 @@ function parseFieldSelector(
             kind: 'Name',
             value: argumentName
           },
-          value: valueNode(graph, argumentType as any, argValue),
+          value: (valueNode as any)(graph, argumentType as any, argValue)
         } as ArgumentNode;
       });
 
@@ -419,29 +419,29 @@ function valueNode<
       kind: 'Variable',
       name: {
         kind: 'Name',
-        value: value.id
+        value: (value as any).id
       }
     };
   } else if (isScalarTypeNode(argType)) {
     if (argType.id === 'String' || argType.id === 'ID') {
       return {
         kind: 'StringValue',
-        value: value as string
+        value: (value as any) as string
       };
     } else if (argType.id === 'Int') {
       return {
         kind: 'IntValue',
-        value: (value as number).toString(10)
+        value: ((value as any) as number).toString(10)
       };
     } else if (argType.id === 'Float') {
       return {
         kind: 'FloatValue',
-        value: (value as number).toString(10)
+        value: ((value as any) as number).toString(10)
       };
     } else if (argType.id === 'Boolean') {
       return {
         kind: 'BooleanValue',
-        value: value as boolean
+        value: (value as any) as boolean
       };
     } else {
       // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
@@ -450,13 +450,13 @@ function valueNode<
   } else if (argType.type === 'enum') {
     return {
       kind: 'EnumValue',
-      value: value as string
+      value: (value as any) as string
     };
   } else if (isListTypeNode(argType)) {
     if (isRequestTypeNode(graph, argType.item)) {
       return {
         kind: 'ListValue',
-        values: (value as any[]).map((v) => valueNode(graph, argType.item as any, v))
+        values: ((value as any) as any[]).map((v) => (valueNode as any)(graph, argType.item as any, v))
       };
     }
   } else if (isInputTypeNode(argType)) {
@@ -468,7 +468,7 @@ function valueNode<
           kind: 'Name',
           value: fieldname
         },
-        value: valueNode(graph, field, (value as any)[fieldname])
+        value: (valueNode as any)(graph, field, (value as any)[fieldname])
       }))
     };
   }

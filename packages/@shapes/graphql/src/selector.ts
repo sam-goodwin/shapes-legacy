@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { FunctionNode, GraphQLAST, GraphQLNode, InputParameter, InterfaceTypeNode, ListTypeNode, PrimtiveTypeNode, ReferenceTypeNode, RequestTypeNodes, ReturnTypeNodes, SelfTypeNode, TypeNode, UnionTypeNode } from './ast';
+import { ShapeSchema } from './schema';
 import { Value } from './value';
 
 export const GQL = Symbol.for('@shapes/graphql');
@@ -65,8 +66,8 @@ export type TypeSelector<
     TypeFieldSelectors<
       Self,
       Graph,
-      Fields & GraphQLAST.GetInheritedFields<Graph, Self>,
-      keyof (Fields & GraphQLAST.GetInheritedFields<Graph, Self>),
+      Fields & ShapeSchema.GetInheritedFields<Graph, Self>,
+      keyof (Fields & ShapeSchema.GetInheritedFields<Graph, Self>),
       {}
     > :
   never
@@ -230,10 +231,10 @@ export type SubTypeSelector<
     SubTypeFieldSelectors<
       ID,
       Graph,
-      Fields & GraphQLAST.GetInheritedFields<Graph, ID>,
-      keyof Fields | GraphQLAST.GetInheritedFieldNames<Graph, ID>,
+      Fields & ShapeSchema.GetInheritedFields<Graph, ID>,
+      keyof Fields | ShapeSchema.GetInheritedFieldNames<Graph, ID>,
       {},
-      GraphQLAST.GetInterfaceTypes<Graph, ID>
+      ShapeSchema.GetInterfaceTypes<Graph, ID>
     > :
   Graph[ID] extends UnionTypeNode<any, infer V> ?
     SubTypeFieldSelectors<

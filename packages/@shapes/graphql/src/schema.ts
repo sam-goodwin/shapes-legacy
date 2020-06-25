@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable tsdoc/syntax */
-import { EnumTypeNode, GraphQLAST, InputTypeNode, InterfaceTypeNode, RequestTypeNodes, ReturnTypeNodes, TypeNode, UnionTypeNode } from './ast';
+import { EnumTypeNode, GraphQLAST, GraphQLNode, InputTypeNode, InterfaceTypeNode, RequestTypeNodes, ReturnTypeNodes, TypeNode, UnionTypeNode } from './ast';
+import { RowLacks, UnionToIntersection } from './util';
 import { QueryCompiler } from './query';
-import { RowLacks } from './util';
 
 /**
  * A GraphQL Schema.
@@ -34,6 +34,56 @@ export interface ShapeSchema<
    * Compiler for constructing type-safe GraphQL mutations (if defined).
    */
   readonly mutation: Mutation extends keyof Graph ? QueryCompiler<Graph, Extract<Graph[Mutation], TypeNode>> : undefined;
+}
+
+export namespace ShapeSchema {
+  /**
+   * Collect all nodes from the AST that are of a certain type.
+   */
+  export type CollectNodes<T extends {type: GraphQLNode['type']}, S extends GraphQLAST> = Extract<S[keyof S], T>;
+
+  /**
+   * Get fields inherited from a type/interface's implemented/extended interfaces.
+   */
+  export type GetInheritedFields<G extends GraphQLAST, T extends keyof G> =
+    G[T] extends TypeNode<string, infer F1, infer Implements> | InterfaceTypeNode<string, infer F1, infer Implements> ?
+      Implements extends undefined ? F1 :
+      Implements extends (keyof G)[] ?
+        UnionToIntersection<{
+          [k in Implements[Extract<keyof Implements, number>]]:
+            G[k] extends InterfaceTypeNode<any, infer F2, infer Extends> ?
+              Extends extends undefined ? F1 & F2 :
+              Extends extends (keyof G)[] ? F1 & F2 & GetInheritedFields<G, Extends[Extract<keyof Extends, number>]> :
+              F1 & F2 :
+            F1
+        }[Implements[Extract<keyof Implements, number>]]> :
+      F1 :
+    never
+  ;
+
+  export type GetInheritedFieldNames<G extends GraphQLAST, T extends keyof G> = keyof GetInheritedFields<G, T>;
+
+  /**
+   * Get all interfaces extended by another interface.
+   */
+  export type GetInterfaces<G extends GraphQLAST, ID extends keyof G> =
+    G[ID] extends InterfaceTypeNode<any, any, infer Extends> ?
+      Extends extends (keyof G)[] ?
+        ID | { [k in keyof Extends]: GetInterfaces<G, Extends[Extract<keyof Extends, number>]> }[keyof Extends] :
+        ID :
+      never
+  ;
+
+  /**
+   * Get the types that implement an interface.
+   */
+  export type GetInterfaceTypes<G extends GraphQLAST, I extends keyof G> = {
+    [ID in keyof G]: G[ID] extends TypeNode<infer T, any, infer Implements> ?
+      I extends GetInterfaces<G, Extract<Implements[Extract<keyof Implements, number>], keyof G>> ?
+        T :
+        never :
+      never
+  }[keyof G];
 }
 
 /**
@@ -332,7 +382,7 @@ export class ShapeSchemaBuilder<G extends GraphQLAST = {}> {
   }
 }
 
-type Interfaces<T extends GraphQLAST> = (GraphQLAST.CollectNodes<{type: 'interface'}, T>['id'])[];
+type Interfaces<T extends GraphQLAST> = (ShapeSchema.CollectNodes<{type: 'interface'}, T>['id'])[];
 
 interface InterfaceDefinition<
   T extends GraphQLAST = GraphQLAST,
@@ -347,8 +397,8 @@ type InterfaceDefinitions<T extends GraphQLAST = GraphQLAST> = {
 
 interface TypeDefinition<
   G extends GraphQLAST = GraphQLAST,
-  E extends (GraphQLAST.CollectNodes<{type: 'interface'}, G>['id'])[] | undefined =
-    (GraphQLAST.CollectNodes<{type: 'interface'}, G>['id'])[] | undefined
+  E extends (ShapeSchema.CollectNodes<{type: 'interface'}, G>['id'])[] | undefined =
+    (ShapeSchema.CollectNodes<{type: 'interface'}, G>['id'])[] | undefined
 > {
   implements?: E;
   fields: ReturnTypeNodes;
@@ -368,5 +418,5 @@ type EnumDefinitions = {
 };
 
 type UnionDefinitions<T extends GraphQLAST = GraphQLAST> = {
-  [ID in string]: GraphQLAST.CollectNodes<{type: 'type'}, T>['id'][]
+  [ID in string]: ShapeSchema.CollectNodes<{type: 'type'}, T>['id'][]
 };
