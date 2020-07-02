@@ -1,19 +1,77 @@
 import 'jest';
-import * as gql from '../src';
+import * as gql from '.';
 
-import { schemaBuilder } from './schema';
-
-const schema = schemaBuilder
+const schema = new gql.ShapeSchemaBuilder()
+  .enum({
+    Direction: {
+      UP: 'UP',
+      DOWN: 'DOWN',
+      LEFT: 'LEFT',
+      RIGHT: 'RIGHT',
+    }
+  } as const)
+  .interface({
+    Animal: {
+      fields: {
+        id: gql.Required(gql.ID),
+        name: gql.Required(gql.String),
+        parent: gql.Self,
+        /**
+         * Dog's Dog.
+         */
+        dog: gql.$('Dog'),
+        self: gql.$('Animal'),
+        int: gql.Int,
+        float: gql.Float,
+        bool: gql.Boolean,
+        list: gql.List(gql.Int),
+        complexList: gql.List(gql.$('Animal')),
+        fn: gql.Function({a: gql.ID}, gql.Required(gql.Self)),
+        forwardCircular: gql.$('A')
+      }
+    }
+  })
+  .type((_) => ({
+    Dog: {
+      implements: ['Animal'],
+      fields: {
+        bark: gql.Required(gql.String)
+      }
+    },
+    Bird: {
+      implements: ['Animal'],
+      fields: {
+        tweets: gql.Required(gql.Boolean)
+      }
+    }
+  }))
+  .union({
+    All: ['Dog', 'Bird']
+  })
+  .type({
+    A: {
+      fields: {
+        i: gql.String,
+        b: gql.$('B')
+      }
+    },
+    B: {
+      fields: {
+        a: gql.$('A')
+      }
+    }
+  })
   .type((_) => ({
     Query: {
       fields: {
-        getAnimal: gql.Function({ id: gql.ID["!"] }, _.Animal),
-        dogs: gql.List(_.Dog)
+        getAnimal: gql.Function({ id: gql.Required(gql.ID) }, _.Animal),
+        dogs: gql.List(_.Dog),
+        dog: gql.String
       }
     },
     Mutation: {
       fields: {
-        addAnimal: gql.Function({ id: gql.ID["!"] }, _.Animal["!"])
+        addAnimal: gql.Function({ id: gql.Required(gql.ID) }, gql.Required(_.Animal))
       }
     }
   }))
@@ -24,7 +82,7 @@ const schema = schemaBuilder
 ;
 
 it('should compile a query to GraphQL AST', () => {
-  const query = schema.query.compile('A', { id: gql.ID["!"] }, ({ id }, root) => root
+  const query = schema.query.compile('A', { id: gql.Required(gql.ID) }, ({ id }, root) => root
     .getAnimal({ id }, (person) => person
       .id()
       .name()

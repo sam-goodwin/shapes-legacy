@@ -1,6 +1,6 @@
 # Shapes
 
-Shapes is a library for defining TypeScript-native schemas and APIs. Instead of custom Schema Definition Languages (SDLs) and code generators (e.g. Prisma, Swagger, OpenAPI, etc.), Shapes define APIs and derive client interfaces entirely within a native TypeScript environment.
+Shapes is a library for defining TypeScript-native schemas and APIs. It creates a schema-driven and type-safe development experience just like the traditional Schema Definition Languages (SDLs) and code generators (e.g. Prisma, Swagger, OpenAPI, etc.). Except, Shapes are defined entirely within a native TypeScript environment.
 
 # @shapes/graphql
 
@@ -13,7 +13,15 @@ Shapes is a library for defining TypeScript-native schemas and APIs. Instead of 
 ```shell
 npm install --save @shapes/graphql
 npm install --save @shapes/graphql-apollo-client
+npm install --save @shapes/graphql-apollo-server
 ```
+
+## Quick Start
+
+Look at the example:
+* [packages/@shapes/graphq-examples/schema.ts](GraphQL Schema)
+* [packages/@shapes/graphq-examples/frontend.ts](Query with a React hook)
+* [packages/@shapes/graphq-examples/server.ts](Implement an Apollo Server for your schema)
 
 ## Schemas
 

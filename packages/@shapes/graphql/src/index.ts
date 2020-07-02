@@ -8,6 +8,7 @@ export {
   List,
   Self,
   String,
+  Required
 } from './ast';
 
 export {
@@ -31,7 +32,7 @@ export {
 
 export {
   ShapeSchema,
-  ShapeSchemaBuilder
+  ShapeSchemaBuilder,
 } from './schema';
 
 export {

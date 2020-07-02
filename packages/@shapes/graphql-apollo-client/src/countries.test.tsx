@@ -1,9 +1,10 @@
+/* eslint-disable sort-imports */
 import * as gql from '@shapes/graphql';
 import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client';
-import { ShapeClient, useShapeQuery } from '../src';
+import { ShapeClient, useShapeQuery } from '.';
 
 import { MockedProvider } from '@apollo/client/testing';
-import renderer = require('react-test-renderer');
+import renderer from 'react-test-renderer';
 import React from 'react';
 import fetch from 'cross-fetch';
 
@@ -15,7 +16,7 @@ const schema = new gql.ShapeSchemaBuilder()
   .type({
     Language: {
       fields: {
-        code: gql.ID["!"],
+        code: gql.Required(gql.ID),
         name: gql.String,
         native: gql.String,
         rtl: gql.Boolean
@@ -24,43 +25,43 @@ const schema = new gql.ShapeSchemaBuilder()
     State: {
       fields: {
         code: gql.String,
-        name: gql.String["!"],
-        country: gql.$('Country')["!"]
+        name: gql.Required(gql.String),
+        country: gql.Required(gql.$('Country'))
       }
     },
     Continent: {
       fields: {
-        code: gql.ID["!"],
-        name: gql.String["!"],
-        countries: gql.List(gql.$('Country')["!"])["!"]
+        code: gql.Required(gql.ID),
+        name: gql.Required(gql.String),
+        countries: gql.Required(gql.List(gql.Required(gql.$('Country'))))
       }
     }
   })
   .type((_) => ({
     Country: {
       fields: {
-        code: gql.ID["!"],
-        name: gql.String["!"],
-        native: gql.String["!"],
-        phone: gql.String["!"],
-        continent: _.Continent["!"],
+        code: gql.Required(gql.ID),
+        name: gql.Required(gql.String),
+        native: gql.Required(gql.String),
+        phone: gql.Required(gql.String),
+        continent: gql.Required(_.Continent),
         capital: gql.String,
         currency: gql.String,
-        languages: gql.List(_.Language["!"])["!"],
-        emoji: gql.String["!"],
-        emojiU: gql.String["!"],
-        states: gql.List(_.State["!"])["!"]
+        languages: gql.Required(gql.List(gql.Required(_.Language))),
+        emoji: gql.Required(gql.String),
+        emojiU: gql.Required(gql.String),
+        states: gql.Required(gql.List(gql.Required(_.State)))
       }
     }
   }))
   .input({
     StringQueryOperatorInput: {
-      eq: gql.String["!"],
-      ne: gql.String["!"],
-      in: gql.List(gql.String)["!"],
-      nin: gql.List(gql.String)["!"],
-      regex: gql.String["!"],
-      glob: gql.String["!"]
+      eq: gql.String,
+      ne: gql.String,
+      in: gql.List(gql.String),
+      nin: gql.List(gql.String),
+      regex: gql.String,
+      glob: gql.String
     }
   })
   .input((_) => ({
@@ -79,11 +80,11 @@ const schema = new gql.ShapeSchemaBuilder()
   .type((_) => ({
     Query: {
       fields: {
-        continents: gql.Function({ filter: _.ContinentFilterInput }, gql.List(_.Continent["!"])["!"]),
-        continent: gql.Function({ code: gql.ID["!"] }, _.Continent),
-        countries: gql.Function({ filter: _.CountryFilterInput }, gql.List(_.Country["!"])["!"]),
-        country: gql.Function({ code: gql.ID["!"] }, _.Country),
-        languages: gql.Function({ filter: _.LanguageFilterInput }, gql.List(_.Language["!"])["!"]),
+        continents: gql.Function({ filter: _.ContinentFilterInput }, gql.Required(gql.List(gql.Required(_.Continent)))),
+        continent: gql.Function({ code: gql.Required(gql.ID) }, _.Continent),
+        countries: gql.Function({ filter: _.CountryFilterInput }, gql.Required(gql.List(gql.Required(_.Country)))),
+        country: gql.Function({ code: gql.Required(gql.ID) }, _.Country),
+        languages: gql.Function({ filter: _.LanguageFilterInput }, gql.Required(gql.List(gql.Required(_.Language)))),
         language: gql.Function({ code: gql.ID }, _.Language)
       }
     }
@@ -91,7 +92,7 @@ const schema = new gql.ShapeSchemaBuilder()
   .build({
     query: 'Query'
   })
-  ;
+;
 
 const client = new ShapeClient({
   schema,
@@ -125,7 +126,7 @@ it('should fetch data', async () => {
   })
 });
 
-const getCountries = schema.query.compile({ code: gql.ID["!"] }, ({ code }, root) => root
+const getCountries = schema.query.compile({ code: gql.Required(gql.ID) }, ({ code }, root) => root
   .country({ code }, (country) => country
     .name()
     .languages((l) => l

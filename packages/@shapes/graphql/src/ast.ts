@@ -9,12 +9,13 @@ export type GraphQLNode =
   | FunctionNode
   | InputTypeNode
   | InterfaceTypeNode
-  | ListTypeNode<GraphQLNode>
+  | ListTypeNode<any>
   | ReferenceTypeNode
   | ScalarTypeNode
   | SelfTypeNode
   | TypeNode
   | UnionTypeNode
+  // | NonNullType<any>
 ;
 
 export function isRootNode(node: any): node is RootNode {
@@ -47,12 +48,13 @@ export type ReturnTypeNode = (
   | EnumTypeNode
   | FunctionNode
   | InterfaceTypeNode
-  | ListTypeNode<ReturnTypeNode>
   | ReferenceTypeNode
   | ScalarTypeNode
   | TypeNode
   | UnionTypeNode
   | SelfTypeNode
+  | ListTypeNode<ReturnTypeNode>
+  // | NonNullType<ReturnTypeNode>
 );
 
 export function isRequestTypeNode(graph: GraphQLAST, node: any): node is RequestTypeNode  {
@@ -76,20 +78,29 @@ export type RequestTypeNode = (
   | ListTypeNode<RequestTypeNode>
   | ScalarTypeNode
   | ReferenceTypeNode
+  // | NonNullType<RequestTypeNode>
 );
 
 class BaseType {
   public readonly required: boolean = false;
-  public get ['!'](): this & {
-    required: true
-  } {
-    return {
-      ...this,
-      required: true
-    } as const;
+  public get ['!']() {
+    return Required(this);
   }
 }
 
+export function Required<T>(t: T): T & {required: true} {
+  return {
+    ...t,
+    required: true
+  };
+}
+
+export class NonNullType<T> {
+  public readonly type: 'non-null' = 'non-null'
+  constructor(
+    public readonly value: T
+  ) {}
+}
 
 export function isScalarTypeNode(node: any): node is ScalarTypeNode {
   return node && node.type === 'scalar';

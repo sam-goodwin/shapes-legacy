@@ -9,6 +9,9 @@
     },
     {
       "path": "./packages/@shapes/graphql-apollo-server/tsconfig.json"
+    },
+    {
+      "path": "./packages/@shapes/graphql-examples/tsconfig.json"
     }
   ]
 }

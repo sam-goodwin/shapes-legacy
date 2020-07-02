@@ -1,9 +1,8 @@
 import 'jest';
 
-import sinon = require('sinon');
-
 import * as gql from '@shapes/graphql';
-import { ShapeClient } from '../src';
+import * as sinon from 'sinon';
+import { ShapeClient } from './client';
 import { ShapeSchemaBuilder } from '@shapes/graphql';
 
 export const schema = new ShapeSchemaBuilder()
@@ -23,7 +22,8 @@ export const schema = new ShapeSchemaBuilder()
   }))
   .build({
     query: 'Query'
-  });
+  })
+;
 
 it('should proxy calls to the Apollo Client', async () => {
   const mockClient = {

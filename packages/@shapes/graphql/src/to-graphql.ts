@@ -1,5 +1,5 @@
 import type * as gql from 'graphql';
-import { InterfaceTypeNode, RequestTypeNode, ReturnTypeNode, RootNode, TypeNode, isFunctionNode } from './ast';
+import { GraphQLAST, InterfaceTypeNode, RequestTypeNode, ReturnTypeNode, RootNode, TypeNode, isFunctionNode } from './ast';
 import { ShapeSchema } from './schema';
 
 import { print } from 'graphql/language/printer';
@@ -22,7 +22,7 @@ export function toGraphQLAST(schema: ShapeSchema<any, any, any>): gql.DocumentNo
   return {
     kind: 'Document',
     definitions: [
-      ...Object.values(schema.graph).map((t) => typeDefinitionNode(t as RootNode)),
+      ...Object.values(schema.graph).map((t) => typeDefinitionNode(schema.graph, t as RootNode)),
       schemaDefinition(schema),
     ]
   };
@@ -46,14 +46,24 @@ export function schemaDefinition(schema: ShapeSchema<any, any, any>): gql.Schema
   }
 }
 
-export function typeDefinitionNode(node: RootNode): gql.TypeDefinitionNode {
+export function typeDefinitionNode(graph: GraphQLAST, node: RootNode): gql.TypeDefinitionNode {
   if (node.type === 'interface' || node.type === 'type') {
     const interfaces = node.type === 'interface' ? node.interfaces : node.interfaces;
+
+    const fields: any = {};
+    if (interfaces !== undefined) {
+      interfaces.map((iface) => {
+        (typeDefinitionNode(graph, graph[iface] as any) as gql.InterfaceTypeDefinitionNode).fields?.forEach((f) => {
+          fields[f.name.value] = f;
+        })
+      })
+    }
+
     return {
       kind: node.type === 'interface' ? 'InterfaceTypeDefinition' : 'ObjectTypeDefinition',
       name: nameNode(node.id),
       interfaces: interfaces === undefined ? undefined : interfaces.map((n) => nameTypeNode(n)),
-      fields: Object.entries(node.fields).map(([fieldName, field]) => fieldDefinitionNode(node, fieldName, field))
+      fields: Object.values(fields).concat(Object.entries(node.fields).map(([fieldName, field]) => fieldDefinitionNode(node, fieldName, field)))
     } as gql.TypeDefinitionNode;
   } else if (node.type === 'union') {
     return {
@@ -73,8 +83,18 @@ export function typeDefinitionNode(node: RootNode): gql.TypeDefinitionNode {
         name: nameNode(value)
       }))
     } as gql.EnumTypeDefinitionNode;
+  } else if (node.type === 'input') {
+    return {
+      kind: 'InputObjectTypeDefinition',
+      name: nameNode(node.id),
+      fields: Object.entries(node.fields).map(([fieldName, field]) => ({
+        kind: 'InputValueDefinition',
+        name: nameNode(fieldName),
+        type: inputTypeNode(field)
+      }))
+    } as gql.InputObjectTypeDefinitionNode;
   }
-  throw new Error(`invalid definition: ${node.type}`);
+  throw new Error(`invalid definition: ${(node as any).type as string}`);
 }
 
 export function fieldDefinitionNode(self: TypeNode | InterfaceTypeNode, fieldName: string, field: ReturnTypeNode): gql.FieldDefinitionNode {
@@ -125,10 +145,8 @@ export function inputTypeNode(node: RequestTypeNode): gql.TypeNode {
         kind: 'ListType',
         type: inputTypeNode(node.item)
       } as gql.ListTypeNode;
-    } else if (node.type === 'reference' || node.type === 'scalar' || node.type === 'enum') {
+    } else {
       return nameTypeNode(node.id);
-    } {
-      throw new Error(`invalid field AST node: ${node.type}`);
     }
   })();
 

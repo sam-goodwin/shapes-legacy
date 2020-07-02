@@ -8,7 +8,7 @@ const schema = new gql.ShapeSchemaBuilder()
   .interface({
     I: {
       fields: {
-        i: gql.String["!"]
+        i: gql.String
       }
     }
   })
@@ -19,7 +19,7 @@ const schema = new gql.ShapeSchemaBuilder()
         /**
          * A field.
          */
-        a: gql.String["!"]
+        a: gql.String
       }
     },
     B: {
@@ -32,7 +32,7 @@ const schema = new gql.ShapeSchemaBuilder()
   .type((_) => ({
     Thing: {
       fields: {
-        thingList: gql.List(_.A)["!"]
+        thingList: gql.List(_.A)
       }
     }
   }))
@@ -53,43 +53,48 @@ const schema = new gql.ShapeSchemaBuilder()
   })
 ;
 
-export const s = new ShapeServer({
-  schema,
-  resolvers: {
-    Query: {
-      getThing() {
-        return {
-          thingList: [{
-            a: 'a'
-          }]
-        }
-      }
-    },
-    I: {
-      __resolveType(parent) {
-        if(parent.a) {
-          return 'A';
-        } else {
-          return 'B';
+it('should', () => {
+  new ShapeServer({
+    schema,
+    resolvers: {
+      Thing: {
+      },
+      Query: {
+        getThing() {
+          return {
+            thingList: [{
+              a: 'a',
+              i: 'i'
+            }]
+          }
         }
       },
-    },
-    A: {
-      a: () => 'a'
-    },
-    B: {
-      b: () => 'b'
-    },
-    U: {
-      __resolveType(obj) {
-        if (obj.a) {
-          return 'A';
-        } else if (obj.b) {
-          return 'B';
-        } else {
-          throw new Error('');
+      I: {
+        __resolveType(parent) {
+          if(parent.a) {
+            return 'A';
+          } else {
+            return 'B';
+          }
+        },
+      },
+      A: {
+        a: () => 'a'
+      },
+      B: {
+        b: () => 'b'
+      },
+      U: {
+        __resolveType(obj) {
+          if (obj.a) {
+            return 'A';
+          } else if (obj.b) {
+            return 'B';
+          } else {
+            throw new Error('');
+          }
         }
       }
     }
-  }
+  });
 });

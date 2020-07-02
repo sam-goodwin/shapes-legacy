@@ -1,0 +1,76 @@
+{
+  "name": "@shapes/graphql-examples",
+  "version": "0.0.0",
+  "description": "Example application using Shape's GraphQL implementation",
+  "author": "Sam Goodwin <sam.goodwin1989@gmail.com>",
+  "license": "Apache-2.0",
+  "private": true,
+  "main": "cjs/index.js",
+  "module": "esm/index.js",
+  "types": "esm/index.d.ts",
+  "files": [
+    "cjs",
+    "esm",
+    "README.md"
+  ],
+  "bugs": "https://github.com/punchcard/shapes/issues",
+  "keywords": [
+    "shapes",
+    "punchcard",
+    "type-safe",
+    "graphql",
+    "apollo",
+    "client"
+  ],
+  "scripts": {
+    "start": "react-scripts start"
+  },
+  "dependencies": {
+    "@apollo/react-hooks": "3.1.5",
+    "@shapes/graphql": "^0.0.0",
+    "@shapes/graphql-apollo-client": "^0.0.0",
+    "@shapes/graphql-apollo-server": "^0.0.0",
+    "countries-list": "2.5.4",
+    "provinces": "^1.11.0",
+    "sift": "^13.1.10"
+  },
+  "devDependencies": {
+    "@types/provinces": "1.11.0",
+    "@types/react-test-renderer": "^16.9.2",
+    "@types/react": "^16.0.0",
+    "@types/sinon": "^9.0.0",
+    "cross-fetch": "^3.0.5",
+    "react-test-renderer": "^16.13.1",
+    "react": "^16.0.0",
+    "sinon": "^9.0.0",
+    "waait": "^1.0.5",
+    "@testing-library/jest-dom": "^4.2.4",
+    "@testing-library/react": "^9.3.2",
+    "@testing-library/user-event": "^7.1.2",
+    "@types/jest": "^24.0.0",
+    "@types/node": "^12.0.0",
+    "@types/react-dom": "^16.9.0",
+    "react-dom": "^16.13.1",
+    "react-scripts": "3.4.1"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "directory": "packages/@shapes/graphql",
+    "type": "git",
+    "url": "https://github.com/punchcard/shapes"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

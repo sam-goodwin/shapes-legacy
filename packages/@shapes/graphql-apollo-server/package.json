@@ -23,7 +23,7 @@
     "client"
   ],
   "dependencies": {
-    "@apollo/server": "^2.0.0",
+    "apollo-server": "^2.0.0",
     "@shapes/graphql": "^0.0.0",
     "graphql": "^15.0.0"
   },

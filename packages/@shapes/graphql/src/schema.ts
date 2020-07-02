@@ -3,6 +3,7 @@
 import { EnumTypeNode, GraphQLAST, GraphQLNode, InputTypeNode, InterfaceTypeNode, RequestTypeNodes, ReturnTypeNodes, TypeNode, UnionTypeNode } from './ast';
 import { RowLacks, UnionToIntersection } from './util';
 import { QueryCompiler } from './query';
+import { Value } from './value';
 
 /**
  * A GraphQL Schema.
@@ -37,6 +38,8 @@ export interface ShapeSchema<
 }
 
 export namespace ShapeSchema {
+  export type Static<S extends ShapeSchema<any, any>, K extends keyof S['graph']> = Value<S['graph'], S['graph'][K]>
+
   /**
    * Collect all nodes from the AST that are of a certain type.
    */
@@ -47,18 +50,24 @@ export namespace ShapeSchema {
    */
   export type GetInheritedFields<G extends GraphQLAST, T extends keyof G> =
     G[T] extends TypeNode<string, infer F1, infer Implements> | InterfaceTypeNode<string, infer F1, infer Implements> ?
-      Implements extends undefined ? F1 :
-      Implements extends (keyof G)[] ?
-        UnionToIntersection<{
-          [k in Implements[Extract<keyof Implements, number>]]:
-            G[k] extends InterfaceTypeNode<any, infer F2, infer Extends> ?
-              Extends extends undefined ? F1 & F2 :
-              Extends extends (keyof G)[] ? F1 & F2 & GetInheritedFields<G, Extends[Extract<keyof Extends, number>]> :
-              F1 & F2 :
-            F1
-        }[Implements[Extract<keyof Implements, number>]]> :
-      F1 :
-    never
+      F1 & GetImplementedFields<G, Implements> :
+      never
+  ;
+
+  export type GetImplementedFields<
+    G extends GraphQLAST,
+    Implements extends (keyof G)[] | undefined
+  > =
+    Implements extends undefined ? {} :
+    Implements extends (keyof G)[] ? UnionToIntersection<{
+      [k in Implements[Extract<keyof Implements, number>]]:
+        G[k] extends InterfaceTypeNode<any, infer F2, infer Extends> ?
+          Extends extends undefined ? F2 :
+          Extends extends (keyof G)[] ? F2 & GetInheritedFields<G, Extends[Extract<keyof Extends, number>]> :
+          F2 :
+        {}
+    }[Implements[Extract<keyof Implements, number>]]> :
+    {}
   ;
 
   export type GetInheritedFieldNames<G extends GraphQLAST, T extends keyof G> = keyof GetInheritedFields<G, T>;
@@ -124,7 +133,7 @@ export class ShapeSchemaBuilder<G extends GraphQLAST = {}> {
     return {
       graph: this.graph,
       mutation: (props.mutation ? new QueryCompiler(this.graph, this.graph[props.mutation!] as any) : undefined) as any,
-      query: new QueryCompiler(this.graph, this.graph[props.query] as any)
+      query: new QueryCompiler(this.graph, this.graph[props.query] as any),
     };
   }
 
@@ -272,12 +281,15 @@ export class ShapeSchemaBuilder<G extends GraphQLAST = {}> {
   ): ShapeSchemaBuilder<G & {
     [ID in keyof I]: ID extends string ? TypeNode<
       ID,
-      I[ID]['fields'] extends (...args: any[]) => ReturnTypeNodes ?
-        ReturnType<I[ID]['fields']> :
-        Extract<I[ID]['fields'], ReturnTypeNodes>,
+      ShapeSchema.GetImplementedFields<G, I[ID]['implements']> & (
+        I[ID]['fields'] extends (...args: any[]) => ReturnTypeNodes ?
+          ReturnType<I[ID]['fields']> :
+          Extract<I[ID]['fields'], ReturnTypeNodes>
+      ),
       I[ID]['implements'] extends (keyof G)[] ? I[ID]['implements'] : undefined
     > : never;
   }> {
+    
     return new ShapeSchemaBuilder<any>({
       ...this.graph,
       ...(Object.entries(typeof typeDefinitions === 'function' ? typeDefinitions(this.graph) : typeDefinitions).map(([ID, typeDef]) => ({

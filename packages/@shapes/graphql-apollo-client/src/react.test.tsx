@@ -1,10 +1,11 @@
+/* eslint-disable sort-imports */
 // eslint-disable-next-line sort-imports
-import * as gql from '@shapes/graphql';
 import { MockedProvider } from '@apollo/client/testing';
 import React from 'react';
-import { useShapeQuery } from '../src';
+import renderer from 'react-test-renderer';
+import { useShapeQuery } from './react';
 
-import renderer = require('react-test-renderer');
+import * as gql from '@shapes/graphql';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const wait = require('waait');
@@ -13,7 +14,7 @@ const schema = new gql.ShapeSchemaBuilder()
   .type({
     Query: {
       fields: {
-        name: gql.String["!"],
+        name: gql.Required(gql.String),
         age: gql.Int
       }
     }

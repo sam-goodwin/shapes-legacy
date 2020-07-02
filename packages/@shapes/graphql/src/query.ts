@@ -221,6 +221,7 @@ export interface SelectionSetBuilder {
   $selections: SelectionNode[];
 }
 export interface SelectionSetBuilderType {
+  id: string;
   new (selections: SelectionNode[]): SelectionSetBuilder;
   prototype: any;
 }
@@ -230,6 +231,7 @@ function parseNode(
   node: TypeNode | InterfaceTypeNode | UnionTypeNode
 ): SelectionSetBuilderType {
   class Builder {
+    public static readonly id: string = node.id;
     constructor(public readonly $selections: SelectionNode[]) {
       if (this.$selections.length === 0) {
         if (isUnionTypeNode(node) || isInterfaceTypeNode(node)) {
@@ -294,7 +296,10 @@ function parseOnSelector(graph: GraphQLAST, builder: SelectionSetBuilderType, ty
 }
 
 function parseFields(graph: GraphQLAST, self: TypeNode | InterfaceTypeNode, builder: SelectionSetBuilderType) {
-  const fields = findFields(graph, self);
+  const fields = {
+    ...self.fields,
+    ...findFields(graph, self.interfaces),
+  };
   for (const [fieldName, field] of Object.entries(fields)) {
     const fieldSelector = parseFieldSelector(graph, builder, field, fieldName);
 
@@ -315,38 +320,49 @@ function parseFieldSelector(
     value: fieldName
   } as const;
 
+  function resolveField(type: ReturnTypeNode) {
+    if (isSelfTypeNode(type)) {
+      return self;
+    } else if (isReferenceTypeNode(type)) {
+      if (type.id === self.id) {
+        return self;
+      } else {
+        return parseNode(graph, graph[type.id] as TypeNode);
+      }
+    } else if (isTypeNode(type) || isInterfaceTypeNode(type) || isUnionTypeNode(type)) {
+      return parseNode(graph, type);
+    } else {
+      throw new Error(`list type invalid: ${type.id!}`);
+    }
+  }
+
   if (isPrimitiveType(field)) {
     return () => ({
       kind: 'Field',
       name
     } as FieldNode);
   } else if (isListTypeNode(field)) {
-    const item = isSelfTypeNode(field.item) ? self : parseNode(graph, field.item as TypeNode);
-    return (itemSelector: (s: SelectionSetBuilder) => SelectionSetBuilder) => ({
-      kind: 'Field',
-      name,
-      selectionSet: {
-        kind: 'SelectionSet',
-        selections: itemSelector(new item([])).$selections
+    let item: SelectionSetBuilderType;
+    return (itemSelector: (s: SelectionSetBuilder) => SelectionSetBuilder) => {
+      if (!item) {
+        item = resolveField(field.item);
       }
-    } as FieldNode);
+      return {
+        kind: 'Field',
+        name,
+        selectionSet: {
+          kind: 'SelectionSet',
+          selections: itemSelector(new item([])).$selections
+        }
+      } as FieldNode;
+    }
   } else if (isFunctionNode(field)) {
     let returnSelector: SelectionSetBuilderType;
-    if (isTypeNode(field.returns) || isInterfaceTypeNode(field.returns) || isUnionTypeNode(field.returns)) {
-      returnSelector = parseNode(graph, field.returns);
-    } else if (isSelfTypeNode(field.returns)) {
-      returnSelector = self;
-    } else if (isReferenceTypeNode(field.returns)) {
-      const ref = graph[field.returns.id];
-      if (ref === undefined) {
-        throw new Error(`reference to ${field.returns.id} is not found in schema`);
-      }
-      if (isTypeNode(ref) || isInterfaceTypeNode(ref) || isUnionTypeNode(ref)) {
-        returnSelector = parseNode(graph, ref);
-      }
-    }
-
+    
     return (args: Record<string, any>, selector?: (b: SelectionSetBuilder) => SelectionSetBuilder) => {
+      if (!returnSelector) {
+        returnSelector = resolveField(field.returns);
+      }
       const argumentNodes = Object.entries(args).map(([argumentName, argValue]) => {
         const argumentType = field.args[argumentName];
         if (argumentType === undefined) {
@@ -373,7 +389,7 @@ function parseFieldSelector(
         }) : undefined
       } as SelectionNode;
     };
-  } else if (isSelfTypeNode(field)) {
+  } else if (isSelfTypeNode(field) || (isReferenceTypeNode(field) && field.id === self.id)) {
     return (selfSelector: (s: SelectionSetBuilder) => SelectionSetBuilder) => ({
       kind: 'Field',
       name,
@@ -476,17 +492,15 @@ function valueNode<
   throw new Error(`unknown node type: ${argType.type}`);
 }
 
-function findFields(graph: GraphQLAST, type: TypeNode | InterfaceTypeNode): ReturnTypeNodes {
-  let fields: any = {
-    ...type.fields
-  };
-  if (type.interfaces !== undefined) {
-    for (const i of type.interfaces) {
+function findFields<G extends GraphQLAST>(graph: G, interfaces: (keyof G)[] | undefined): ReturnTypeNodes {
+  let fields: any = {};
+  if (interfaces !== undefined) {
+    for (const i of interfaces) {
       const iface = graph[i];
       assertIsTypeOrInterfaceNode(iface);
       fields = {
-        ...fields,
-        ...findFields(graph, iface)
+        ...iface.fields,
+        ...findFields(graph, iface.interfaces)
       };
     }
   }
