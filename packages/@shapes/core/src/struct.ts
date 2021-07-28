@@ -7,15 +7,15 @@ import { Value } from './value';
 import { Compact, RowLacks } from 'typelevel-ts';
 
 export type Fields = Readonly<{
-  [member: string]: Shape;
+  [field: string]: Shape;
 }>;
 export namespace Fields {
   /**
-   * Computes a natural representation of the members by applying `+?` to `optional` fields.
+   * Computes a natural representation of the fields by applying `+?` to `optional` fields.
    */
   export type Natural<M extends Fields> = {
     /**
-     * Write each member and their documentation to the structure.
+     * Write each field and their documentation to the structure.
      * Write them all as '?' for now.
      */
     [m in keyof M]+?: Pointer.Resolve<M[m]>;
@@ -35,19 +35,19 @@ export namespace Fields {
  * class Nested extends Struct({
  *   count: integer
  * }) {}
- * Nested.members; // {count: IntegerShape}
+ * Nested.Fields; // {count: IntegerShape}
  *
  * class MyClass extends Struct({
  *   key: string,
  *   nested: Nested
  * }) {}
- * MyClass.members; // {key: StringShape, nested: ClassShape<{count: IntegerShape}, Nested>}
+ * MyClass.Fields; // {key: StringShape, nested: ClassShape<{count: IntegerShape}, Nested>}
  * ```
  *
- * @typeparam M Struct members (key-value pairs of shapes)
+ * @typeparam M Struct Fields (key-value pairs of shapes)
  * @typeparam I instance type of this Struct (the value type)
  */
-export class StructShape<M extends Fields = Fields, FQN extends string | undefined = string | undefined> extends Shape {
+export class StructShape<F extends Fields = Fields, FQN extends string | undefined = string | undefined> extends Shape {
   public readonly Kind: 'structShape' = 'structShape';
 
   /**
@@ -58,7 +58,7 @@ export class StructShape<M extends Fields = Fields, FQN extends string | undefin
   [key: string]: any;
 
   constructor(
-    public readonly Members: Readonly<M>,
+    public readonly Fields: Readonly<F>,
     public readonly Metadata: Metadata,
     FQN?: FQN,
   ) {
@@ -77,7 +77,7 @@ export namespace StructShape {
 /**
  * Maps a Struct's fields to a structure that represents it at runtime.
  *
- * It supports adding `?` to optional members and maintins developer documentation.
+ * It supports adding `?` to optional fields and maintins developer documentation.
  *
  * E.g.
  * ```ts
@@ -95,7 +95,7 @@ export namespace StructShape {
  */
 export type FieldValues<M extends Fields> = {
   /**
-   * Write each member and their documentation to the structure.
+   * Write each field and their documentation to the structure.
    * Write them all as '?' for now.
    */
   [m in keyof M]+?: Value.Of<Pointer.Resolve<M[m]>>;
@@ -108,7 +108,7 @@ export type FieldValues<M extends Fields> = {
 
 export interface StructClass<M extends Fields = Fields, FQN extends string | undefined = string | undefined> extends StructShape<M, FQN> {
   /**
-   * Constructor takes values for each member.
+   * Constructor takes values for each field.
    */
   new (values: {
     // compact StructValue<T> by enumerating its keys
@@ -119,7 +119,7 @@ export interface StructClass<M extends Fields = Fields, FQN extends string | und
   };
 
   /**
-   * Extend this Struct with new members to create a new `StructType`.
+   * Extend this Struct with new fields to create a new `StructType`.
    *
    * Example:
    * ```ts
@@ -133,13 +133,13 @@ export interface StructClass<M extends Fields = Fields, FQN extends string | und
    * }) {}
    * ```
    *
-   * @param members new Struct members
+   * @param fields new Struct fields
    */
-  Extend<M2 extends Fields>(members: RowLacks<M2, keyof M>): Extend<M, undefined, M2>;
-  Extend<FQN2 extends string, M2 extends Fields>(fqn: FQN2, members: RowLacks<M2, keyof M>): Extend<M, FQN2, M2>;
+  Extend<M2 extends Fields>(fields: RowLacks<M2, keyof M>): Extend<M, undefined, M2>;
+  Extend<FQN2 extends string, M2 extends Fields>(fqn: FQN2, fields: RowLacks<M2, keyof M>): Extend<M, FQN2, M2>;
 
   /**
-   * Pick members from a `Struct` to create a new `StructType`.
+   * Pick fields from a `Struct` to create a new `StructType`.
    *
    * Example:
    * ```ts
@@ -149,17 +149,17 @@ export interface StructClass<M extends Fields = Fields, FQN extends string | und
    * }) {}
    *
    * class B extends A.Pick(['b']) {}
-   * B.members.b;
-   * B.members.a; // <- compile-time error
+   * B.fields.b;
+   * B.fields.a; // <- compile-time error
    * ```
    *
-   * @param members array of members to select
+   * @param fields array of fields to select
    */
-  Pick<M2 extends (keyof M)[]>(members: M2): PickField<M, undefined, M2>;
-  Pick<FQN2 extends string, M2 extends (keyof M)[]>(fqn: FQN2, members: M2): PickField<M, FQN2, M2>;
+  Pick<M2 extends (keyof M)[]>(fields: M2): PickField<M, undefined, M2>;
+  Pick<FQN2 extends string, M2 extends (keyof M)[]>(fqn: FQN2, fields: M2): PickField<M, FQN2, M2>;
 
   /**
-   * Omit members from a `Struct` to create a new `StructType`.
+   * Omit fields from a `Struct` to create a new `StructType`.
    *
    * Example:
    * ```ts
@@ -169,18 +169,18 @@ export interface StructClass<M extends Fields = Fields, FQN extends string | und
    * }) {}
    *
    * class B extends A.Omit(['a']) {}
-   * B.members.b;
-   * B.members.a; // <- compile-time error
+   * B.fields.b;
+   * B.fields.a; // <- compile-time error
    * ```
    *
-   * @param members array of members to select
+   * @param fields array of fields to select
    */
-  Omit<M2 extends (keyof M)[]>(members: M2): OmitField<M, undefined, M2>;
-  Omit<FQN2 extends string, M2 extends (keyof M)[]>(fqn: FQN2, members: M2): OmitField<M, FQN2, M2>;
+  Omit<M2 extends (keyof M)[]>(fields: M2): OmitField<M, undefined, M2>;
+  Omit<FQN2 extends string, M2 extends (keyof M)[]>(fqn: FQN2, fields: M2): OmitField<M, FQN2, M2>;
 }
 
 /**
- * Dynamically constructs a class using a map of member names to shapes.
+ * Dynamically constructs a class using a map of field names to shapes.
  *
  * class A extends Struct({
  *   /**
@@ -189,14 +189,14 @@ export interface StructClass<M extends Fields = Fields, FQN extends string | und
  *   a: string
  * }) {}
  *
- * @param members key-value pairs of members and their shape (type).
+ * @param fields key-value pairs of fields and their shape (type).
  */
-export function Struct<FQN extends string, T extends Fields = any>(members: T): StructClass<T, undefined>;
-export function Struct<FQN extends string, T extends Fields = any>(fqn: FQN, members: T): StructClass<T, FQN>;
+export function Struct<FQN extends string, T extends Fields = any>(fields: T): StructClass<T, undefined>;
+export function Struct<FQN extends string, T extends Fields = any>(fqn: FQN, fields: T): StructClass<T, FQN>;
 
 export function Struct<T extends Fields>(a: any, b?: any) {
   const FQN = typeof a === 'string' ? a : undefined;
-  const members = typeof b === 'undefined' ? a : b;
+  const fields = typeof b === 'undefined' ? a : b;
   class NewType {
     public static readonly FQN: string | undefined = FQN;
 
@@ -212,7 +212,7 @@ export function Struct<T extends Fields>(a: any, b?: any) {
       b?: RowLacks<M, keyof T>
     ): PickField<T, FQN, M> {
       return Pick(
-        members,
+        fields,
         typeof a === 'string' ? a : undefined,
         typeof a === 'string' ? b! : a
       ) as any;
@@ -223,7 +223,7 @@ export function Struct<T extends Fields>(a: any, b?: any) {
       b?: RowLacks<M, keyof T>
     ): OmitField<T, FQN, M> {
       return Omit(
-        members,
+        fields,
         typeof a === 'string' ? a : undefined,
         typeof a === 'string' ? b! : a
       ) as any;
@@ -238,7 +238,7 @@ export function Struct<T extends Fields>(a: any, b?: any) {
     }
   }
 
-  const shape = new StructShape<T, any>(members, {}, FQN);
+  const shape = new StructShape<T, any>(fields, {}, FQN);
   Object.assign(NewType, shape);
   (NewType as any).equals = shape.equals.bind(NewType);
   (NewType as any).visit = shape.visit.bind(NewType);
@@ -248,7 +248,7 @@ export function Struct<T extends Fields>(a: any, b?: any) {
 }
 
 /**
- * Extend this Struct with new members to create a new `StructType`.
+ * Extend this Struct with new fields to create a new `StructType`.
  *
  * Example:
  * ```ts
@@ -262,13 +262,13 @@ export function Struct<T extends Fields>(a: any, b?: any) {
  * }) {}
  * ```
  *
- * You can not override the parent Struct's members.
+ * You can not override the parent Struct's fields.
  *
  * ```ts
  * class A extends Extend(A, { a: integer }) {} // compile-time error
  * ```
  *
- * @param members new Struct members
+ * @param fields new Struct fields
  */
 export function Extend<
   T extends StructClass,
@@ -277,21 +277,21 @@ export function Extend<
 >(
   type: T,
   fqn: FQN,
-  members: RowLacks<M, keyof T['Members']>
-): Extend<T['Members'], FQN, M> {
+  fields: RowLacks<M, keyof T['Fields']>
+): Extend<T['Fields'], FQN, M> {
   return Struct(fqn!, {
-    ...type.Members,
-    ...members
+    ...type.Fields,
+    ...fields
   }) as any;
 }
 
 /**
- * Combine two sets of Members into a single `StructType`.
+ * Combine two sets of fields into a single `StructType`.
  */
 export type Extend<T extends Fields, FQN extends string | undefined, M extends Fields> = StructClass<Compact<T & M>, FQN>;
 
 /**
- * Picks members from a `Struct` to create a new `StructType`.
+ * Picks fields from a `Struct` to create a new `StructType`.
  */
 export type PickField<T extends Fields, FQN extends string | undefined, K extends (keyof T)[] | ReadonlyArray<keyof T>> =
   StructClass<
@@ -300,7 +300,7 @@ export type PickField<T extends Fields, FQN extends string | undefined, K extend
   >;
 
 /**
- * Pick members from a `Struct` to create a new `StructType`.
+ * Pick fields from a `Struct` to create a new `StructType`.
  *
  * Example:
  * ```ts
@@ -310,30 +310,30 @@ export type PickField<T extends Fields, FQN extends string | undefined, K extend
  * }) {}
  *
  * class B extends Pick(A, ['a']) {}
- * B.members.a;
- * B.members.b; // <- compile-time error
+ * B.fields.a;
+ * B.fields.b; // <- compile-time error
  * ```
  *
  * @param fields to select from
- * @param select array of members to select
+ * @param select array of fields to select
  */
 export function Pick<T extends Fields, FQN extends string | undefined, M extends (keyof T)[]>(
   fields: T,
   fqn: FQN,
   select: M
 ): PickField<T, FQN, M> {
-  const members: any = {};
+  const newFields: any = {};
   for (const key of select) {
-    members[key] = fields[key];
-    if (members[key] === undefined) {
-      throw new Error(`attempted to select non-existent member: ${key}`);
+    newFields[key] = fields[key];
+    if (newFields[key] === undefined) {
+      throw new Error(`attempted to select non-existent field: ${key}`);
     }
   }
-  return Struct(fqn!, members) as any;
+  return Struct(fqn!, newFields) as any;
 }
 
 /**
- * Omits members from a `Struct` to create a new `StructType`
+ * Omits fields from a `Struct` to create a new `StructType`
  */
 export type OmitField<T extends Fields, FQN extends string | undefined, K extends (keyof T)[]> =
   StructClass<
@@ -342,7 +342,7 @@ export type OmitField<T extends Fields, FQN extends string | undefined, K extend
   >;
 
 /**
- * Pick members from a `Struct` to create a new `StructType`.
+ * Pick fields from a `Struct` to create a new `StructType`.
  *
  * Example:
  * ```ts
@@ -352,24 +352,24 @@ export type OmitField<T extends Fields, FQN extends string | undefined, K extend
  * }) {}
  *
  * class B extends Pick(A, ['a']) {}
- * B.members.a;
- * B.members.b; // <- compile-time error
+ * B.fields.a;
+ * B.fields.b; // <- compile-time error
  * ```
  *
  * @param fields to select from
- * @param select array of members to select
+ * @param select array of fields to select
  */
 export function Omit<T extends Fields, FQN extends string | undefined, M extends (keyof T)[]>(
   fields: T,
   fqn: FQN,
   select: M
 ): OmitField<T, FQN, M> {
-  const members: any = {};
-  for (const key of Object.keys(fields).filter(f => select.find(s => f === s))) {
-    members[key] = fields[key];
-    if (members[key] === undefined) {
-      throw new Error(`attempted to select non-existent member: ${key}`);
+  const newFields: any = {};
+  for (const key of Object.keys(newFields).filter(f => select.find(s => f === s))) {
+    newFields[key] = fields[key];
+    if (newFields[key] === undefined) {
+      throw new Error(`attempted to select non-existent field: ${key}`);
     }
   }
-  return Struct(fqn!, members) as any;
+  return Struct(fqn!, newFields) as any;
 }

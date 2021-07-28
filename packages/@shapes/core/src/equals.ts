@@ -142,7 +142,7 @@ export namespace Equals {
       return (a, b) => a === b;
     }
     public structShape(shape: StructShape<any>): Equals<StructShape<any>> {
-      const fields = Object.entries(shape.Members)
+      const fields = Object.entries(shape.Fields)
         .map(([name, member]) => ({
           [name]: of((member as any))
         }))

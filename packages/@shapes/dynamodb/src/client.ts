@@ -61,7 +61,7 @@ export class BaseClient<T extends StructShape<any>, K extends DDB.KeyOf<T>> {
     this.mapper = Mapper.of(this.type);
 
     if (typeof this.key.sort === 'undefined') {
-      const hashKeyMapper = Mapper.of(this.type.Members[this.key.partition]);
+      const hashKeyMapper = Mapper.of(this.type.Fields[this.key.partition]);
       this.writeKey = (k: any) => ({
         [this.key.partition]: hashKeyMapper.write(k[this.key.partition])
       });
@@ -71,8 +71,8 @@ export class BaseClient<T extends StructShape<any>, K extends DDB.KeyOf<T>> {
     } else {
       const hk = this.key.partition;
       const sk = this.key.sort;
-      const hashKeyMapper = Mapper.of(this.type.Members[hk]);
-      const sortKeyMapper = Mapper.of(this.type.Members[sk]);
+      const hashKeyMapper = Mapper.of(this.type.Fields[hk]);
+      const sortKeyMapper = Mapper.of(this.type.Fields[sk]);
       this.writeKey = (k: any) => ({
         [hk]: hashKeyMapper.write(k[hk]),
         [sk]: sortKeyMapper.write(k[sk])
@@ -301,8 +301,8 @@ export namespace DDB {
   export type HashKey<T> = keyof T;
   export type SortKey<T> = [keyof T, keyof T];
   export interface KeyOf<T extends StructShape> {
-    partition: keyof T['Members'];
-    sort?: keyof T['Members'] | undefined;
+    partition: keyof T['Fields'];
+    sort?: keyof T['Fields'] | undefined;
   }
 
   export type KeyNames<T extends StructShape<any>, K extends KeyOf<T>> =
@@ -311,18 +311,18 @@ export namespace DDB {
     never;
 
   export type KeyValue<T extends StructShape<any>, K extends KeyOf<T>> = {
-    [k in KeyNames<T, K>]: Value.Of<T['Members'][k]>;
+    [k in KeyNames<T, K>]: Value.Of<T['Fields'][k]>;
   };
 
   export type HashKeyName<K> = K extends { partition: infer H; } ? H : never;
 
   export type HashKeyValue<T extends StructShape<any>, K extends KeyOf<T>> = Value.Of<HashKeyShape<T, K>>;
-  export type HashKeyShape<T extends StructShape<any>, K extends KeyOf<T>> = T['Members'][HashKeyName<K>];
+  export type HashKeyShape<T extends StructShape<any>, K extends KeyOf<T>> = T['Fields'][HashKeyName<K>];
 
   export type SortKeyName<K> = K extends { sort?: infer S; } ? S : undefined;
 
   export type SortKeyValue<T extends StructShape<any>, K extends KeyOf<T>> = Value.Of<SortKeyShape<T, K>>;
-  export type SortKeyShape<T extends StructShape<any>, K extends KeyOf<T>> = T['Members'][SortKeyName<K>];
+  export type SortKeyShape<T extends StructShape<any>, K extends KeyOf<T>> = T['Fields'][SortKeyName<K>];
 
   export type QueryCondition<T extends StructShape<any>, K extends KeyOf<T>> =
     SortKeyName<K> extends undefined ? {

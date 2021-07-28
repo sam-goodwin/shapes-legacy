@@ -220,7 +220,7 @@ export namespace Json {
       };
     }
     public structShape(shape: StructShape<any>): Mapper<any, any> {
-      const fields = Object.entries(shape.Members)
+      const fields = Object.entries(shape.Fields)
         .map(([name, member]) => ({
           [name]: mapper((member as any), {
             visitor: this

@@ -60,7 +60,7 @@ export namespace Mapper {
 
     function resolveShape() {
       if (ShapeGuards.isStructShape(shape)) {
-        const mappers: {[key: string]: Mapper<any>; } = Object.entries(shape.Members)
+        const mappers: {[key: string]: Mapper<any>; } = Object.entries(shape.Fields)
           .map(([name, m]) => ({ [name]: Mapper.of(m as Shape, options) }))
           .reduce((a, b) => ({...a, ...b}), {});
 

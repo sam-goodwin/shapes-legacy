@@ -106,7 +106,7 @@ export class ToJsonSchemaVisitor implements ShapeVisitor<JsonSchema, undefined> 
   }
 
   public structShape(shape: StructShape<any>): ObjectSchema<any> {
-    const required = (Object.entries(shape.Members) as [string, Shape][])
+    const required = (Object.entries(shape.Fields) as [string, Shape][])
       .map(([name, member]) => {
         return isOptional(member) || ShapeGuards.isNothingShape(member) ? [] : [name];
       })
@@ -114,7 +114,7 @@ export class ToJsonSchemaVisitor implements ShapeVisitor<JsonSchema, undefined> 
 
     const schema: any = {
       type: 'object',
-      properties: Object.entries(shape.Members)
+      properties: Object.entries(shape.Fields)
         .map(([name, member]) => ({ [name]: (member as any).visit(this) }))
         .reduce((a, b) => ({...a, ...b}), {})
     };

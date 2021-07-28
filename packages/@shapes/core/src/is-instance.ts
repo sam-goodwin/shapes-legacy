@@ -44,7 +44,7 @@ export class IsInstanceVisitor implements ShapeVisitor<IsInstance<Shape>, IsInst
     return ((a: any) => typeof a === 'boolean') as IsInstance<BoolShape>;
   }
   public structShape(shape: StructShape, props: IsInstanceProps): IsInstance<Shape> {
-    const fields = Object.entries(shape.Members).map(([name, value]) => ({
+    const fields = Object.entries(shape.Fields).map(([name, value]) => ({
       [name]: IsInstance.of(value, props)
     })).reduce((a, b) => ({...a, ...b}));
     return ((a: any) => {
