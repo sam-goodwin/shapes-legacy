@@ -54,7 +54,7 @@ Punchcard Shapes is another workaround, except it eliminates the above redundanc
 Types are constructed in the same way as ordinary data in JavaScript!
 
 ```ts
-class MyType extends Type({
+class MyType extends Record({
   /**
    * In-line documentation goes here.
    */
@@ -84,10 +84,10 @@ java.lang.String.class; // Class<String>
 ```
 
 ## Dynamic Reflection
-That same information is available dynamically on an instance via the `TypeShape.Members` symbol:
+That same information is available dynamically on an instance via the `RecordShape.Members` symbol:
 ```ts
 const myType: MyType = ...;
-myType[TypeShape.Members].items; // ArrayShape<StringShape>;
+myType[RecordShape.Members].items; // ArrayShape<StringShape>;
 ```
 
 This is similar to the `instance.getClass()` method call in Java:
@@ -102,7 +102,7 @@ What about decorators though?
 Decorators in TypeScript can only be declared on top-level declarations, so we can not apply them to the arguments passed in to `Record`:
 
 ```ts
-class MyType extends Type({
+class MyType extends Record({
   @Decorator() // not possible, bummer
   items: array(string)
 }) {}
@@ -111,7 +111,7 @@ class MyType extends Type({
 To use ordinary decorators, you must redundantly declare the member:
 
 ```ts
-class MyType extends Type({
+class MyType extends Record({
   items: array(string)
 }) {
   @Decorator() // possible
@@ -124,7 +124,7 @@ This is unfortunate, but it is par for the course when compared to the `type-gra
 To eiminate this redundancy, Shapes also provide its own decorator replacement called "Traits". Any Shape can have a trait "applied" to it:
 
 ```ts
-class MyType extends Type({
+class MyType extends Record({
   items: array(string)
     .apply(Trait())
 }) {}
@@ -135,7 +135,7 @@ Traits take decorators even further, however, as they can also augment the type-
 For example, the minimum value of an integer can be annotated on the type and used in type-level machinery to change behavior:
 
 ```ts
-class MyType extends Type({
+class MyType extends Record({
   myNumber: integer
     .apply(Minimum(0))
 }) {}
@@ -164,7 +164,7 @@ Traits are used to annotate records with validation information. Common use-case
 
 ### `Optional` - mark a member as optional, equivalent to `?` in TS.
 ```ts
-class MyType extends Type({
+class MyType extends Record({
   key: string.apply(Optional),
   // or use short-hand
   shortHand: optional(string)
@@ -178,7 +178,7 @@ const myType = new MyType({}); // still compiles if we don't provide a value for
 
 ### Min/Max numbers
 ```ts
-class MyType extends Type({
+class MyType extends Record({
   myNumber: number
     .apply(Minimum(0))
     .apply(Maximum(256))
@@ -187,7 +187,7 @@ class MyType extends Type({
 
 ### Min/Max length of a string
 ```ts
-class MyType extends Type({
+class MyType extends Record({
   myNumber: string
     .apply(MinLength(0))
     .apply(MaxLength(256))
@@ -213,4 +213,4 @@ class MyType extends Type({
 * `map(T)` - a map of string keys to values, equivalent to `{[key: string]: T; }` in TS.
 
 ## Record
-* `Type(M)` - a class with named and well-typed members:
+* `Record(M)` - a class with named and well-typed members:
