@@ -1,20 +1,20 @@
 import 'jest';
 
-import { number, optional, string, Type } from '@shapes/core';
+import { number, optional, string, Struct } from '@shapes/core';
 import { array, map, set } from '@shapes/core';
 
 import './';
 import { JsonPath } from './json-path';
 
 // tslint:disable: member-access
-export class Nested extends Type('Nested', {
+export class Nested extends Struct('Nested', {
   /**
    * This is a nested string.
    */
   a: string
 }) {}
 
-export class MyType extends Type('MyType', {
+export class MyType extends Struct('MyType', {
   /**
    * Field documentation.
    */

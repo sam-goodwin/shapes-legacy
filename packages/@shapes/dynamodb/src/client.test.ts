@@ -2,11 +2,11 @@ import 'jest';
 
 import * as sinon from 'sinon';
 
-import { any, array, map, number, optional, string, Type, union } from '@shapes/core';
+import { any, array, map, number, optional, string, Struct, union } from '@shapes/core';
 import { TableClient } from './client';
 
 // tslint:disable: member-access
-class DataType extends Type('Type', {
+class DataType extends Struct('Type', {
   key: string,
   count: number,
   list: array(string),

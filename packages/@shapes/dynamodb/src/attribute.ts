@@ -1,4 +1,4 @@
-import { Type, TypeClass, TypeShape, any, AnyShape, array, ArrayShape, AssertIsShape, binary, BinaryShape, boolean, BoolShape, EnumShape, literal, LiteralShape, map, MapShape, NothingShape, NumberShape, RequiredKeys, SetShape, Shape, ShapeGuards, string, StringShape, TimestampShape, union, UnionShape } from '@shapes/core';
+import { Struct as SStruct, StructClass, StructShape, any, AnyShape, array, ArrayShape, AssertIsShape, binary, BinaryShape, boolean, BoolShape, EnumShape, literal, LiteralShape, map, MapShape, NothingShape, NumberShape, RequiredKeys, SetShape, Shape, ShapeGuards, string, StringShape, TimestampShape, union, UnionShape } from '@shapes/core';
 
 // tslint:disable: ban-types
 
@@ -33,7 +33,7 @@ export namespace AttributeValue {
       I extends NumberShape ? typeof AttributeValue.NumberSet :
       AttributeValue.List<ShapeOf<I, Props>>
       :
-    T extends TypeShape<infer Fields> ? AttributeValue.Struct<{
+    T extends StructShape<infer Fields> ? AttributeValue.Struct<{
       [field in keyof Fields]: ShapeOf<Fields[field], Props>
     }> :
     T extends UnionShape<infer I> ? UnionShape<{
@@ -85,7 +85,7 @@ export namespace AttributeValue {
       } else {
         return AttributeValue.List(shapeOf(shape.Items, props)) as ShapeOf<T>;
       }
-    } else if (ShapeGuards.isRecordShape(shape)) {
+    } else if (ShapeGuards.isStructShape(shape)) {
       return AttributeValue.Struct(Object.entries(shape.Members).map(([name, field]) => ({
         [name]: shapeOf(field)
       })).reduce((a, b) => ({...a,...b}))) as ShapeOf<T>;
@@ -112,56 +112,56 @@ export type AttributeValue = (
 );
 
 export namespace AttributeValue {
-  export class Nothing extends Type({
+  export class Nothing extends SStruct({
     NULL: literal(boolean, true as const)
   }) {}
-  export class Binary extends Type({
+  export class Binary extends SStruct({
     B: binary
   }) {}
-  export class BinarySet extends Type({
+  export class BinarySet extends SStruct({
     BS: array(binary)
   }) {}
-  export class Bool extends Type({
+  export class Bool extends SStruct({
     BOOL: boolean
   }) {}
-  export class Number extends Type({
+  export class Number extends SStruct({
     N: string
   }) {}
-  export class NumberSet extends Type({
+  export class NumberSet extends SStruct({
     NS: array(string)
   }) {}
-  export class String extends Type({
+  export class String extends SStruct({
     S: string
   }) {}
   export interface Enum<E extends EnumShape> {
     S: E
   }
-  export const Enum = <E extends EnumShape>(e: E) => Type({
+  export const Enum = <E extends EnumShape>(e: E) => SStruct({
     S: e
   });
-  export class StringSet extends Type({
+  export class StringSet extends SStruct({
     SS: array(string)
   }) {}
 
-  export interface List<T extends AttributeValue> extends TypeShape<{
+  export interface List<T extends AttributeValue> extends StructShape<{
     L: ArrayShape<T>;
   }> {}
-  export const List = <T extends AttributeValue>(item: T): List<T> => Type({
+  export const List = <T extends AttributeValue>(item: T): List<T> => SStruct({
     L: array(item)
   }) as any as List<T>;
-  export interface Map<T extends AttributeValue> extends TypeClass<{
+  export interface Map<T extends AttributeValue> extends StructClass<{
     M: MapShape<T>;
   }> {}
-  export const Map = <T extends AttributeValue>(item: T): Map<T> => Type({
+  export const Map = <T extends AttributeValue>(item: T): Map<T> => SStruct({
     M: map(item)
   }) as any as Map<T>;
   export interface StructFields {
     [fieldName: string]: AttributeValue;
   }
-  export interface Struct<F extends StructFields> extends TypeClass<{
-    M: TypeShape<F>;
+  export interface Struct<F extends StructFields> extends StructClass<{
+    M: StructShape<F>;
   }> {}
-  export const Struct = <F extends StructFields>(fields: F): Struct<F> => Type({
-    M: Type(fields)
+  export const Struct = <F extends StructFields>(fields: F): Struct<F> => SStruct({
+    M: SStruct(fields)
   });
 }

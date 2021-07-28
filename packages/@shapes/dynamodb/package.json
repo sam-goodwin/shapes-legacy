@@ -6,9 +6,7 @@
   "types": "dist/cjs/index.d.ts",
   "module": "dist/esm/index.js",
   "scripts": {
-    "build": "tsc",
-    "test": "jest",
-    "watch": "tsc -w"
+    "clean": "rm -rf dist"
   },
   "license": "Apache-2.0",
   "author": {

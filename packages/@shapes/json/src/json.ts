@@ -1,4 +1,4 @@
-import { AnyShape, ArrayShape, BinaryShape, BoolShape, EnumShape, Equals, Fields, FunctionArgs, FunctionShape, HashSet, IntegerShape, IsInstance, isOptional, LiteralShape, Mapper, MapShape, NeverShape, NothingShape, NumberShape, SetShape, Shape, ShapeVisitor, StringShape, TimestampShape, TypeShape, UnionShape, ValidatingMapper, Value } from '@shapes/core';
+import { AnyShape, ArrayShape, BinaryShape, BoolShape, EnumShape, Equals, Fields, FunctionArgs, FunctionShape, HashSet, IntegerShape, IsInstance, isOptional, LiteralShape, Mapper, MapShape, NeverShape, NothingShape, NumberShape, SetShape, Shape, ShapeVisitor, StringShape, TimestampShape, StructShape, UnionShape, ValidatingMapper, Value } from '@shapes/core';
 
 export type Tag = typeof Tag;
 export const Tag = Symbol.for('@shapes/json.Json.Tag');
@@ -14,14 +14,14 @@ export namespace Json {
     T extends MapShape<infer I> ? Record<string, {
       [i in keyof I]: From<I, V[keyof V]>
     }[keyof I]> :
-    T extends TypeShape<infer M> ? {
+    T extends StructShape<infer M> ? {
       [f in keyof M]: From<M[f], V[Extract<f, keyof V>]>
     } :
     T extends TimestampShape ? string :
     V
   ;
   export type Of<T> =
-    T extends TypeShape<infer M> ? {
+    T extends StructShape<infer M> ? {
       [m in keyof Fields.Natural<M>]: Of<Fields.Natural<M>[m]>;
     } :
     // use the instance type if this type can be constructed (for class A extends Record({}) {})
@@ -219,7 +219,7 @@ export namespace Json {
         write: (b: boolean) => b
       };
     }
-    public recordShape(shape: TypeShape<any>): Mapper<any, any> {
+    public structShape(shape: StructShape<any>): Mapper<any, any> {
       const fields = Object.entries(shape.Members)
         .map(([name, member]) => ({
           [name]: mapper((member as any), {

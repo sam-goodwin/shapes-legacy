@@ -5,7 +5,7 @@ import { IsInstance } from './is-instance';
 import { LiteralShape } from './literal';
 import { AnyShape, BinaryShape, BoolShape, NeverShape, NothingShape, NumberShape, StringShape, TimestampShape } from './primitive';
 import { Shape } from './shape';
-import { TypeShape } from './type';
+import { StructShape } from './struct';
 import { UnionShape } from './union';
 import { Value } from './value';
 import { ShapeVisitor } from './visitor';
@@ -141,7 +141,7 @@ export namespace Equals {
     public boolShape(_shape: BoolShape): Equals<BoolShape> {
       return (a, b) => a === b;
     }
-    public recordShape(shape: TypeShape<any>): Equals<TypeShape<any>> {
+    public structShape(shape: StructShape<any>): Equals<StructShape<any>> {
       const fields = Object.entries(shape.Members)
         .map(([name, member]) => ({
           [name]: of((member as any))

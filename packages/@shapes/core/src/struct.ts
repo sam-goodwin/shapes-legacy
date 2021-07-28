@@ -28,30 +28,30 @@ export namespace Fields {
 }
 
 /**
- * RecordShapes are used to model complex types of named members.
+ * A StructShape is used to model complex types of named fields.
  *
  * E.g.
  * ```
- * class Nested extends Record({
+ * class Nested extends Struct({
  *   count: integer
  * }) {}
  * Nested.members; // {count: IntegerShape}
  *
- * class MyClass extends Record({
+ * class MyClass extends Struct({
  *   key: string,
  *   nested: Nested
  * }) {}
  * MyClass.members; // {key: StringShape, nested: ClassShape<{count: IntegerShape}, Nested>}
  * ```
  *
- * @typeparam M record members (key-value pairs of shapes)
- * @typeparam I instance type of this Record (the value type)
+ * @typeparam M Struct members (key-value pairs of shapes)
+ * @typeparam I instance type of this Struct (the value type)
  */
-export class TypeShape<M extends Fields = Fields, FQN extends string | undefined = string | undefined> extends Shape {
-  public readonly Kind: 'recordShape' = 'recordShape';
+export class StructShape<M extends Fields = Fields, FQN extends string | undefined = string | undefined> extends Shape {
+  public readonly Kind: 'structShape' = 'structShape';
 
   /**
-   * Globally unique identifier of this record type.
+   * Globally unique identifier of this Struct type.
    */
   public readonly FQN: FQN;
 
@@ -70,18 +70,18 @@ export class TypeShape<M extends Fields = Fields, FQN extends string | undefined
     return Object.values(this.Metadata);
   }
 }
-export namespace TypeShape {
-  export type GetMembers<T extends TypeShape<any>> = T extends TypeShape<infer M> ? M : never;
+export namespace StructShape {
+  export type GetFields<T extends StructShape<any>> = T extends StructShape<infer M> ? M : never;
 }
 
 /**
- * Maps RecordMembers to a structure that represents it at runtime.
+ * Maps a Struct's fields to a structure that represents it at runtime.
  *
  * It supports adding `?` to optional members and maintins developer documentation.
  *
  * E.g.
  * ```ts
- * class A extends Record({
+ * class A extends Struct({
  *   /**
  *    * Inline documentation.
  *    *\/
@@ -93,7 +93,7 @@ export namespace TypeShape {
  * }).a; // <- same here
  * ```
  */
-export type RecordValues<M extends Fields> = {
+export type FieldValues<M extends Fields> = {
   /**
    * Write each member and their documentation to the structure.
    * Write them all as '?' for now.
@@ -106,24 +106,24 @@ export type RecordValues<M extends Fields> = {
   [m in RequiredKeys<M>]-?: Value.Of<Pointer.Resolve<M[m]>>;
 };
 
-export interface TypeClass<M extends Fields = Fields, FQN extends string | undefined = string | undefined> extends TypeShape<M, FQN> {
+export interface StructClass<M extends Fields = Fields, FQN extends string | undefined = string | undefined> extends StructShape<M, FQN> {
   /**
    * Constructor takes values for each member.
    */
   new (values: {
-    // compact RecordValue<T> by enumerating its keys
+    // compact StructValue<T> by enumerating its keys
     // produces a cleaner interface instead of `{a: string} & {}`
-    [m in keyof RecordValues<M>]: RecordValues<M>[m];
+    [m in keyof FieldValues<M>]: FieldValues<M>[m];
   }): {
-    [m in keyof RecordValues<M>]: RecordValues<M>[m];
+    [m in keyof FieldValues<M>]: FieldValues<M>[m];
   };
 
   /**
-   * Extend this Record with new members to create a new `RecordType`.
+   * Extend this Struct with new members to create a new `StructType`.
    *
    * Example:
    * ```ts
-   * class A extends Record({
+   * class A extends Struct({
    *   a: string,
    *   b: string
    * }) {}
@@ -133,17 +133,17 @@ export interface TypeClass<M extends Fields = Fields, FQN extends string | undef
    * }) {}
    * ```
    *
-   * @param members new Record members
+   * @param members new Struct members
    */
   Extend<M2 extends Fields>(members: RowLacks<M2, keyof M>): Extend<M, undefined, M2>;
   Extend<FQN2 extends string, M2 extends Fields>(fqn: FQN2, members: RowLacks<M2, keyof M>): Extend<M, FQN2, M2>;
 
   /**
-   * Pick members from a `Record` to create a new `RecordType`.
+   * Pick members from a `Struct` to create a new `StructType`.
    *
    * Example:
    * ```ts
-   * class A extends Record({
+   * class A extends Struct({
    *   a: string,
    *   b: string
    * }) {}
@@ -155,15 +155,15 @@ export interface TypeClass<M extends Fields = Fields, FQN extends string | undef
    *
    * @param members array of members to select
    */
-  Pick<M2 extends (keyof M)[]>(members: M2): PickRecord<M, undefined, M2>;
-  Pick<FQN2 extends string, M2 extends (keyof M)[]>(fqn: FQN2, members: M2): PickRecord<M, FQN2, M2>;
+  Pick<M2 extends (keyof M)[]>(members: M2): PickField<M, undefined, M2>;
+  Pick<FQN2 extends string, M2 extends (keyof M)[]>(fqn: FQN2, members: M2): PickField<M, FQN2, M2>;
 
   /**
-   * Omit members from a `Record` to create a new `RecordType`.
+   * Omit members from a `Struct` to create a new `StructType`.
    *
    * Example:
    * ```ts
-   * class A extends Record({
+   * class A extends Struct({
    *   a: string,
    *   b: string
    * }) {}
@@ -175,14 +175,14 @@ export interface TypeClass<M extends Fields = Fields, FQN extends string | undef
    *
    * @param members array of members to select
    */
-  Omit<M2 extends (keyof M)[]>(members: M2): OmitRecord<M, undefined, M2>;
-  Omit<FQN2 extends string, M2 extends (keyof M)[]>(fqn: FQN2, members: M2): OmitRecord<M, FQN2, M2>;
+  Omit<M2 extends (keyof M)[]>(members: M2): OmitField<M, undefined, M2>;
+  Omit<FQN2 extends string, M2 extends (keyof M)[]>(fqn: FQN2, members: M2): OmitField<M, FQN2, M2>;
 }
 
 /**
  * Dynamically constructs a class using a map of member names to shapes.
  *
- * class A extends Record({
+ * class A extends Struct({
  *   /**
  *    * Inline documentation.
  *    *\/
@@ -191,14 +191,12 @@ export interface TypeClass<M extends Fields = Fields, FQN extends string | undef
  *
  * @param members key-value pairs of members and their shape (type).
  */
-// export function Record<T extends RecordMembers = any>(members: T): RecordType<T>;
-export function Type<FQN extends string, T extends Fields = any>(members: T): TypeClass<T, undefined>;
-export function Type<FQN extends string, T extends Fields = any>(fqn: FQN, members: T): TypeClass<T, FQN>;
+export function Struct<FQN extends string, T extends Fields = any>(members: T): StructClass<T, undefined>;
+export function Struct<FQN extends string, T extends Fields = any>(fqn: FQN, members: T): StructClass<T, FQN>;
 
-export function Type<T extends Fields>(a: any, b?: any) {
+export function Struct<T extends Fields>(a: any, b?: any) {
   const FQN = typeof a === 'string' ? a : undefined;
   const members = typeof b === 'undefined' ? a : b;
-// export function Record<T extends RecordMembers = any>(members: T): RecordType<T> {
   class NewType {
     public static readonly FQN: string | undefined = FQN;
 
@@ -212,7 +210,7 @@ export function Type<T extends Fields>(a: any, b?: any) {
     public static Pick<FQN extends string, M extends (keyof T)[]>(
       a: FQN | RowLacks<M, keyof T>,
       b?: RowLacks<M, keyof T>
-    ): PickRecord<T, FQN, M> {
+    ): PickField<T, FQN, M> {
       return Pick(
         members,
         typeof a === 'string' ? a : undefined,
@@ -223,7 +221,7 @@ export function Type<T extends Fields>(a: any, b?: any) {
     public static Omit<FQN extends string, M extends (keyof T)[]>(
       a: FQN | RowLacks<M, keyof T>,
       b?: RowLacks<M, keyof T>
-    ): OmitRecord<T, FQN, M> {
+    ): OmitField<T, FQN, M> {
       return Omit(
         members,
         typeof a === 'string' ? a : undefined,
@@ -240,7 +238,7 @@ export function Type<T extends Fields>(a: any, b?: any) {
     }
   }
 
-  const shape = new TypeShape<T, any>(members, {}, FQN);
+  const shape = new StructShape<T, any>(members, {}, FQN);
   Object.assign(NewType, shape);
   (NewType as any).equals = shape.equals.bind(NewType);
   (NewType as any).visit = shape.visit.bind(NewType);
@@ -250,11 +248,11 @@ export function Type<T extends Fields>(a: any, b?: any) {
 }
 
 /**
- * Extend this Record with new members to create a new `RecordType`.
+ * Extend this Struct with new members to create a new `StructType`.
  *
  * Example:
  * ```ts
- * class A extends Record({
+ * class A extends Struct({
  *   a: string,
  *   b: string
  * }) {}
@@ -264,16 +262,16 @@ export function Type<T extends Fields>(a: any, b?: any) {
  * }) {}
  * ```
  *
- * You can not override the parent Record's members.
+ * You can not override the parent Struct's members.
  *
  * ```ts
  * class A extends Extend(A, { a: integer }) {} // compile-time error
  * ```
  *
- * @param members new Record members
+ * @param members new Struct members
  */
 export function Extend<
-  T extends TypeClass,
+  T extends StructClass,
   FQN extends string | undefined,
   M extends Fields
 >(
@@ -281,33 +279,32 @@ export function Extend<
   fqn: FQN,
   members: RowLacks<M, keyof T['Members']>
 ): Extend<T['Members'], FQN, M> {
-  return Type(fqn!, {
+  return Struct(fqn!, {
     ...type.Members,
     ...members
   }) as any;
 }
 
 /**
- * Combine two sets of Members into a single `RecordType`.
+ * Combine two sets of Members into a single `StructType`.
  */
-export type Extend<T extends Fields, FQN extends string | undefined, M extends Fields> = TypeClass<Compact<T & M>, FQN>;
-
+export type Extend<T extends Fields, FQN extends string | undefined, M extends Fields> = StructClass<Compact<T & M>, FQN>;
 
 /**
- * Picks members from a `Record` to create a new `RecordType`.
+ * Picks members from a `Struct` to create a new `StructType`.
  */
-export type PickRecord<T extends Fields, FQN extends string | undefined, K extends (keyof T)[] | ReadonlyArray<keyof T>> =
-  TypeClass<
+export type PickField<T extends Fields, FQN extends string | undefined, K extends (keyof T)[] | ReadonlyArray<keyof T>> =
+  StructClass<
     Pick<T, Extract<K[keyof K], string>>,
     FQN
   >;
 
 /**
- * Pick members from a `Record` to create a new `RecordType`.
+ * Pick members from a `Struct` to create a new `StructType`.
  *
  * Example:
  * ```ts
- * class A extends Record({
+ * class A extends Struct({
  *   a: string,
  *   b: string
  * }) {}
@@ -324,7 +321,7 @@ export function Pick<T extends Fields, FQN extends string | undefined, M extends
   fields: T,
   fqn: FQN,
   select: M
-): PickRecord<T, FQN, M> {
+): PickField<T, FQN, M> {
   const members: any = {};
   for (const key of select) {
     members[key] = fields[key];
@@ -332,24 +329,24 @@ export function Pick<T extends Fields, FQN extends string | undefined, M extends
       throw new Error(`attempted to select non-existent member: ${key}`);
     }
   }
-  return Type(fqn!, members) as any;
+  return Struct(fqn!, members) as any;
 }
 
 /**
- * Omits members from a `Record` to create a new `RecordType`
+ * Omits members from a `Struct` to create a new `StructType`
  */
-export type OmitRecord<T extends Fields, FQN extends string | undefined, K extends (keyof T)[]> =
-  TypeClass<
+export type OmitField<T extends Fields, FQN extends string | undefined, K extends (keyof T)[]> =
+  StructClass<
     Omit<T, Extract<K[keyof K], string>>,
     FQN
   >;
 
 /**
- * Pick members from a `Record` to create a new `RecordType`.
+ * Pick members from a `Struct` to create a new `StructType`.
  *
  * Example:
  * ```ts
- * class A extends Record({
+ * class A extends Struct({
  *   a: string,
  *   b: string
  * }) {}
@@ -366,7 +363,7 @@ export function Omit<T extends Fields, FQN extends string | undefined, M extends
   fields: T,
   fqn: FQN,
   select: M
-): OmitRecord<T, FQN, M> {
+): OmitField<T, FQN, M> {
   const members: any = {};
   for (const key of Object.keys(fields).filter(f => select.find(s => f === s))) {
     members[key] = fields[key];
@@ -374,5 +371,5 @@ export function Omit<T extends Fields, FQN extends string | undefined, M extends
       throw new Error(`attempted to select non-existent member: ${key}`);
     }
   }
-  return Type(fqn!, members) as any;
+  return Struct(fqn!, members) as any;
 }

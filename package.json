@@ -14,7 +14,7 @@
     "postinstall": "lerna bootstrap",
     "build": "tsc -b",
     "watch": "tsc -w",
-    "clean": "rm -rf node_modules && lerna run clean --parallel",
+    "clean": "lerna run clean --parallel",
     "test": "jest",
     "format": "prettier --write . --ignore=**/{build,dist,generated,lib,node_modules} --loglevel=error",
     "update-all-deps": "ncu -u && lerna exec ncu -- -u && lerna clean -y && rm -rf node_modules && npm i"

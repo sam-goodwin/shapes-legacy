@@ -1,14 +1,14 @@
 import 'jest';
-import { any, AnyShape, binary, NothingShape, number, NumberShape, optional, string, StringShape, Type, union, UnionShape } from '.';
+import { any, AnyShape, binary, NothingShape, number, NumberShape, optional, string, StringShape, Struct, union, UnionShape } from '.';
 import { array, ArrayShape, map, MapShape, set, SetShape } from '.';
 
 // tslint:disable: member-access
 
-class Nested extends Type('Nested', {
+class Nested extends Struct('Nested', {
   a: string
 }) {}
 
-class MyType extends Type('MyType', {
+class MyType extends Struct('MyType', {
   anyType: any,
   binaryType: binary,
   id: string,
@@ -23,8 +23,8 @@ class MyType extends Type('MyType', {
   union: union(string, number)
 }) {}
 
-it('should have Kind, "recordShape"', () => {
-  expect(MyType.Kind).toStrictEqual('recordShape');
+it('should have Kind, "structShape"', () => {
+  expect(MyType.Kind).toStrictEqual('structShape');
 });
 
 it('should parse members', () => {
@@ -41,7 +41,7 @@ it('should parse members', () => {
   expect(MyType.Members.union).toStrictEqual(new UnionShape([new StringShape(), new NumberShape()]));
 });
 
-class Empty extends Type('Empty', {}) {}
+class Empty extends Struct('Empty', {}) {}
 
 it('should support no members', () => {
   expect(Empty.Members).toStrictEqual({});

@@ -6,7 +6,7 @@ import { LiteralShape } from './literal';
 import { Meta } from './metadata';
 import { AnyShape, BinaryShape, BoolShape, IntegerShape, NeverShape, NothingShape, NumberShape, StringShape, TimestampShape } from './primitive';
 import { Shape } from './shape';
-import { TypeShape } from './type';
+import { StructShape } from './struct';
 import { UnionShape } from './union';
 import { Value } from './value';
 import { ShapeVisitor } from './visitor';
@@ -95,7 +95,7 @@ export namespace Validator {
     public boolShape(_shape: BoolShape): Validator<any>[] {
       return [];
     }
-    public recordShape(shape: TypeShape<any>): Validator<any>[] {
+    public structShape(shape: StructShape<any>): Validator<any>[] {
       const validators: {
         [key: string]: Validator<any>[];
       } = {};

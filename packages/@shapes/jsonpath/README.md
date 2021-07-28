@@ -4,8 +4,8 @@ This library extends the Punchcard Shape Type-System with support for a type-saf
 
 # Define a Type
 ```ts
-// a record to be used within our top-level type (i.e. a nested structure).
-export class Nested extends Record({
+// a Struct to be used within our top-level type (i.e. a nested structure).
+export class Nested extends Struct({
   /**
    * This is a nested string.
    */
@@ -13,7 +13,7 @@ export class Nested extends Record({
 }) {}
 
 // the type we will query with JSON path
-export class MyType extends Record({
+export class MyType extends Struct({
   /**
    * Field documentation.
    */

@@ -1,9 +1,9 @@
-import { array, map, set, any, binary, bool, Enum, integer, number, optional, string, timestamp, Type, Value } from '@shapes/core';
+import { array, map, set, any, binary, bool, Enum, integer, number, optional, string, timestamp, Struct, Value } from '@shapes/core';
 
 import '.';
 
 // tslint:disable: member-access
-export class Nested extends Type('Nested', {
+export class Nested extends Struct('Nested', {
   /**
    * This is a nested string.
    */
@@ -18,7 +18,7 @@ export const Direction = Enum('Direction', {
   Right: 'RIGHT'
 } as const);
 
-export class MyType extends Type('MyType', {
+export class MyType extends Struct('MyType', {
   /**
    * Field documentation.
    */
