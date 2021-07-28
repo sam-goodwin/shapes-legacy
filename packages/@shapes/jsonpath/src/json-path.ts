@@ -25,7 +25,7 @@ export namespace JsonPath {
     T extends ArrayShape<infer I> ? JsonPath.Array<I> :
     T extends MapShape<infer V> ? JsonPath.Map<V> :
     T extends StructShape<any> ? JsonPath.Struct<T> & {
-      [fieldName in keyof T['Members']]: Of<T['Members'][fieldName]>;
+      [fieldName in keyof T['Fields']]: Of<T['Fields'][fieldName]>;
     } :
     T extends SetShape<infer V> ? JsonPath.Array<V> :
     T extends UnionShape<infer U> ?
@@ -50,7 +50,7 @@ export namespace JsonPath {
 
   export function of<T extends StructShape>(shape: T): Root<T> {
     const result: any = {};
-    for (const [name, member] of Objekt.entries(shape.Members) as [string, Shape][]) {
+    for (const [name, member] of Objekt.entries(shape.Fields) as [string, Shape][]) {
       result[name] = member.visit(visitor as any, new Id(member, `$['${name}']`));
     }
     return result;
@@ -396,13 +396,13 @@ export namespace JsonPath {
 
   export class Struct<T extends StructShape<any>> extends Thing<T> {
     public readonly [Fields]: {
-      [fieldName in keyof T['Members']]: Of<T['Members'][fieldName]>;
+      [fieldName in keyof T['Fields']]: Of<T['Fields'][fieldName]>;
     };
 
     constructor(type: T, expression: ExpressionNode<T>) {
       super(type, expression);
       this[Fields] = {} as any;
-      for (const [name, prop] of Objekt.entries(type.Members) as [string, Shape][]) {
+      for (const [name, prop] of Objekt.entries(type.Fields) as [string, Shape][]) {
         (this[Fields] as any)[name] = prop.visit(visitor as any, new Struct.Field(this, prop, name));
       }
     }

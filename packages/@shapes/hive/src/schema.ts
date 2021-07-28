@@ -25,21 +25,21 @@ function getComment<T extends Shape>(member: T): GetComment<T> {
   return undefined as GetComment<T>;
 }
 
-type Column<K extends keyof T['Members'], T extends StructShape<any>> = {
+type Column<K extends keyof T['Fields'], T extends StructShape<any>> = {
   name: K;
   type: glue.Type;
-  comment: GetComment<T['Members'][K]>;
+  comment: GetComment<T['Fields'][K]>;
 };
 
-export type PartitionKeys<T extends StructShape<any>> = KeysOfType<T['Members'], Decorated<any, { isPartition: true; }>>;
+export type PartitionKeys<T extends StructShape<any>> = KeysOfType<T['Fields'], Decorated<any, { isPartition: true; }>>;
 
 export type Columns<T extends StructShape<any>> = {
-  readonly [K in keyof T['Members']]: Column<K, T>;
+  readonly [K in keyof T['Fields']]: Column<K, T>;
 };
 
 export function schema<T extends StructShape<any>>(shape: T): Columns<T> {
   const columns: { [name: string]: Column<any, any>; } = {};
-  for (const [name, member] of Object.entries(shape.Members) as [string, Shape][]) {
+  for (const [name, member] of Object.entries(shape.Fields) as [string, Shape][]) {
     const type = member.visit(SchemaVisitor.instance, null);
     const col = {
       name,
@@ -88,7 +88,7 @@ export class SchemaVisitor implements ShapeVisitor<glue.Type, null> {
     return glue.Schema.BOOLEAN;
   }
   public structShape(shape: StructShape<any>): glue.Type {
-    return glue.Schema.struct(Object.entries(shape.Members)
+    return glue.Schema.struct(Object.entries(shape.Fields)
       .map(([name, member]) => ({
         name,
         type: (member as Shape).visit(this, null)

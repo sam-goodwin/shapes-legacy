@@ -99,7 +99,7 @@ export namespace Validator {
       const validators: {
         [key: string]: Validator<any>[];
       } = {};
-      for (const [name, member] of Object.entries(shape.Members)) {
+      for (const [name, member] of Object.entries(shape.Fields)) {
         validators[name] = [of(member as any)];
       }
       return [(obj, path) => {

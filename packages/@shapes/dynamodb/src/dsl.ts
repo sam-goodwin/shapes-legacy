@@ -47,7 +47,7 @@ export namespace DSL {
 
   export function of<T extends StructShape<any>>(shape: T): Root<T> {
     const result: any = {};
-    for (const [name, member] of Object.entries(shape.Members)) {
+    for (const [name, member] of Object.entries(shape.Fields)) {
       result[name] = (member as Shape).visit(DslVisitor, new RootProperty(member as Shape, name));
     }
     return result;
@@ -657,13 +657,13 @@ export namespace DSL {
 
   export class Struct<T extends StructShape<any>> extends Thing<T> {
     public readonly fields: {
-      [fieldName in keyof T['Members']]: Of<T['Members'][fieldName]>;
+      [fieldName in keyof T['Fields']]: Of<T['Fields'][fieldName]>;
     };
 
     constructor(type: T, expression: ExpressionNode<T>) {
       super(type, expression);
       this.fields = {} as any;
-      for (const [name, prop] of Object.entries(type.Members)) {
+      for (const [name, prop] of Object.entries(type.Fields)) {
         (this.fields as any)[name] = (prop as Shape).visit(DslVisitor, new Struct.Field(this, prop as Shape, name));
       }
     }

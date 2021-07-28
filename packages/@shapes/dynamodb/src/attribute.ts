@@ -86,7 +86,7 @@ export namespace AttributeValue {
         return AttributeValue.List(shapeOf(shape.Items, props)) as ShapeOf<T>;
       }
     } else if (ShapeGuards.isStructShape(shape)) {
-      return AttributeValue.Struct(Object.entries(shape.Members).map(([name, field]) => ({
+      return AttributeValue.Struct(Object.entries(shape.Fields).map(([name, field]) => ({
         [name]: shapeOf(field)
       })).reduce((a, b) => ({...a,...b}))) as ShapeOf<T>;
     } else if (ShapeGuards.isUnionShape(shape)) {

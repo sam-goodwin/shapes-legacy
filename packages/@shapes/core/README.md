@@ -75,7 +75,7 @@ const myType = new MyType({
 ## Static Reflection
 The `MyType` class has a static reference to the Struct's type information:
 ```ts
-MyType.members.items; // ArrayShape<StringShape>
+MyType.Fields.items; // ArrayShape<StringShape>
 ```
 
 This is similar to the `Type.class` static reference in Java:
@@ -84,10 +84,10 @@ java.lang.String.class; // Class<String>
 ```
 
 ## Dynamic Reflection
-That same information is available dynamically on an instance via the `TypeShape.Members` symbol:
+That same information is available dynamically on an instance via the `TypeShape.Fields` symbol:
 ```ts
 const myType: MyType = ...;
-myType[TypeShape.Members].items; // ArrayShape<StringShape>;
+myType[TypeShape.Fields].items; // ArrayShape<StringShape>;
 ```
 
 This is similar to the `instance.getClass()` method call in Java:
@@ -139,7 +139,7 @@ class MyType extends Struct({
   myNumber: integer
     .apply(Minimum(0))
 }) {}
-MyType.members.myNumber;
+MyType.Fields.myNumber;
 // is of type:
 NumberShape & {
   [import('@shapes/core').Decorated.Data]: {

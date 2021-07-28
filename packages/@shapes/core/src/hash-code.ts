@@ -139,7 +139,7 @@ export namespace HashCode {
       return n => n as number;
     }
     public structShape(shape: StructShape<any>): HashCode<any> {
-      const fields = Object.entries(shape.Members)
+      const fields = Object.entries(shape.Fields)
         .map(([name, member]) => ({
           [name]: of((member as any))
         }))

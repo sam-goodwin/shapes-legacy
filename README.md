@@ -19,7 +19,7 @@ class MyType {
 }
 ```
 
-To build a generic ORM like we're used to in languages like Java, we need to reflect on this type's members. To do this in TS, you must enable the [`--emitDecoratorMetadata`](https://www.typescriptlang.org/docs/handbook/compiler-options.html) flag and use the [reflect-metadata](https://www.npmjs.com/package/reflect-metadata) package:
+To build a generic ORM like we're used to in languages like Java, we need to reflect on this type's Fields. To do this in TS, you must enable the [`--emitDecoratorMetadata`](https://www.typescriptlang.org/docs/handbook/compiler-options.html) flag and use the [reflect-metadata](https://www.npmjs.com/package/reflect-metadata) package:
 
 ```ts
 var t = Reflect.getMetadata('design:type', MyType, 'key');
@@ -62,7 +62,7 @@ class MyType extends Struct({
 }) {}
 ```
 
-`MyType` is what we call a "Struct". It is constructed by extending the result of a function call (`Struct`) which dynamically creates a class containing static references to its type information and a type-safe constructor that accepts and validates the members.
+`MyType` is what we call a "Struct". It is constructed by extending the result of a function call (`Struct`) which dynamically creates a class containing static references to its type information and a type-safe constructor that accepts and validates the Fields.
 
 ## Type-Safe Constructor
 The constructor takes an object where each key is a member, and its type is known:
@@ -75,7 +75,7 @@ const myType = new MyType({
 ## Static Reflection
 The `MyType` class has a static reference to the Struct's type information:
 ```ts
-MyType.members.items; // ArrayShape<StringShape>
+MyType.Fields.items; // ArrayShape<StringShape>
 ```
 
 This is similar to the `Type.class` static reference in Java:
@@ -84,10 +84,10 @@ java.lang.String.class; // Class<String>
 ```
 
 ## Dynamic Reflection
-That same information is available dynamically on an instance via the `TypeShape.Members` symbol:
+That same information is available dynamically on an instance via the `TypeShape.Fields` symbol:
 ```ts
 const myType: MyType = ...;
-myType[TypeShape.Members].items; // ArrayShape<StringShape>;
+myType[TypeShape.Fields].items; // ArrayShape<StringShape>;
 ```
 
 This is similar to the `instance.getClass()` method call in Java:
@@ -139,7 +139,7 @@ class MyType extends Struct({
   myNumber: integer
     .apply(Minimum(0))
 }) {}
-MyType.members.myNumber;
+MyType.Fields.myNumber;
 // is of type:
 NumberShape & {
   [import('@shapes/core').Decorated.Data]: {
@@ -173,7 +173,7 @@ class MyType extends Struct({
 Note: the signatures also understand that this field is optional (thanks to the information being available at the type-level):
 
 ```ts
-const myType = new MyType({}); // still compiles if we don't provide a value for the optional members
+const myType = new MyType({}); // still compiles if we don't provide a value for the optional Fields
 ```
 
 ### Min/Max numbers
@@ -213,4 +213,4 @@ class MyType extends Struct({
 * `map(T)` - a map of string keys to values, equivalent to `{[key: string]: T; }` in TS.
 
 ## Struct
-* `Struct(M)` - a class with named and well-typed members:
+* `Struct(M)` - a class with named and well-typed Fields:
