@@ -1,6 +1,6 @@
 import 'jest';
 
-import { HashSet, MaxLength, Type } from '@shapes/core';
+import { HashSet, MaxLength, Struct } from '@shapes/core';
 import { binary, string } from '@shapes/core';
 import { Mapper } from './mapper';
 import { MyType, Nested } from './mock';
@@ -109,7 +109,7 @@ it('should read attribute values', () => {
   expect(actual).toEqual(expected);
 });
 
-class T extends Type('T', {
+class T extends Struct('T', {
   id: string.apply(MaxLength(1))
 }) {}
 
@@ -126,7 +126,7 @@ it('should validate', () => {
 });
 
 it('should support empty record', () => {
-  class Empty extends Type('Empty', {}) {}
+  class Empty extends Struct('Empty', {}) {}
 
   expect(() => Mapper.of(Empty)).not.toThrow();
 });

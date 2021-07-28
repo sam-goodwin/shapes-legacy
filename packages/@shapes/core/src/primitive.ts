@@ -6,6 +6,7 @@ import { Shape } from './shape';
 export type PrimitiveShapes =
   | AnyShape
   | BoolShape
+  | BinaryShape
   | StringShape
   | NumberShape
   | IntegerShape

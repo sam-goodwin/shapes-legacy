@@ -1,5 +1,5 @@
 import 'jest';
-import { any, binary, Enum, integer, isOptional, literal, nothing, number, optional, string, timestamp, Type, union } from '../src';
+import { any, binary, Enum, integer, isOptional, literal, nothing, number, optional, string, timestamp, Struct, union } from '../src';
 import { array, map, set } from '../src/collection';
 import { ShapeGuards } from '../src/guards';
 
@@ -67,11 +67,11 @@ test('isLiteral', () => {
   expect(ShapeGuards.isLiteralShape(integer)).toBe(false);
 });
 
-class MyClass extends Type('MyClass', {
+class MyClass extends Struct('MyClass', {
   key: string
 }) {}
 
 test('isRecordShape', () => {
-  expect(ShapeGuards.isRecordShape(MyClass)).toBe(true);
-  expect(ShapeGuards.isRecordShape(string)).toBe(false);
+  expect(ShapeGuards.isStructShape(MyClass)).toBe(true);
+  expect(ShapeGuards.isStructShape(string)).toBe(false);
 });

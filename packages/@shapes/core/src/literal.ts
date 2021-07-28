@@ -11,7 +11,7 @@ export function literal(a: any, b?: any) {
   return new LiteralShape(a, b);
 }
 
-export class LiteralShape<T extends Shape, V = any> extends Shape {
+export class LiteralShape<T extends Shape = Shape, V = any> extends Shape {
   public readonly FQN = 'literal';
   public readonly Kind: 'literalShape' = 'literalShape';
   constructor(

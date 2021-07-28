@@ -1,4 +1,4 @@
-import { AnyShape, ArrayShape, BinaryShape, BoolShape, EnumShape, FunctionArgs, FunctionShape, IntegerShape, isOptional, LiteralShape, MapShape, Meta, NeverShape, NumberShape, SetShape, Shape, ShapeGuards, ShapeVisitor,  StringShape, TimestampShape, TypeShape, UnionShape } from '@shapes/core';
+import { AnyShape, ArrayShape, BinaryShape, BoolShape, EnumShape, FunctionArgs, FunctionShape, IntegerShape, isOptional, LiteralShape, MapShape, Meta, NeverShape, NumberShape, SetShape, Shape, ShapeGuards, ShapeVisitor,  StringShape, TimestampShape, StructShape, UnionShape } from '@shapes/core';
 import { AnySchema, ArraySchema, BinarySchema, BoolSchema, EnumSchema, IntegerSchema, JsonSchema, MapSchema, NothingSchema, NumberSchema, ObjectSchema, SetSchema, StringSchema, TimestampSchema } from './json-schema';
 
 /**
@@ -105,7 +105,7 @@ export class ToJsonSchemaVisitor implements ShapeVisitor<JsonSchema, undefined> 
     };
   }
 
-  public recordShape(shape: TypeShape<any>): ObjectSchema<any> {
+  public structShape(shape: StructShape<any>): ObjectSchema<any> {
     const required = (Object.entries(shape.Members) as [string, Shape][])
       .map(([name, member]) => {
         return isOptional(member) || ShapeGuards.isNothingShape(member) ? [] : [name];

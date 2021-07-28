@@ -5,7 +5,7 @@ import { LiteralShape } from './literal';
 import { Decorated } from './metadata';
 import { AnyShape, BinaryShape, BoolShape, IntegerShape, NeverShape, NothingShape, NumberShape, StringShape, TimestampShape } from './primitive';
 import { Shape } from './shape';
-import { Fields, TypeShape } from './type';
+import { Fields, StructShape } from './struct';
 import { UnionShape } from './union';
 
 export namespace ShapeGuards {
@@ -47,9 +47,9 @@ export namespace ShapeGuards {
       throw new Error(`${a} is not of type: FunctionShape`);
     }
   };
-  export const isRecordShape = (a: any): a is TypeShape<Fields> => isShape(a) && a.Kind === 'recordShape';
-  export const assertRecordShape = (a: any): asserts a is TypeShape<Fields> => {
-    if (!isRecordShape(a)) {
+  export const isStructShape = (a: any): a is StructShape<Fields> => isShape(a) && a.Kind === 'structShape';
+  export const assertStructShape = (a: any): asserts a is StructShape<Fields> => {
+    if (!isStructShape(a)) {
       throw new Error(`${a} is not of type: RecordShape`);
     }
   };
@@ -130,7 +130,7 @@ export namespace ShapeGuards {
   };
 
   export type IsArrayShape<T> = T extends ArrayShape<Shape> ? T : never;
-  export type IsRecordShape<T> = T extends TypeShape<Fields> ? T : never;
+  export type IsStructShape<T> = T extends StructShape<Fields> ? T : never;
   export type IsMapShape<T> = T extends MapShape<Shape> ? T : never;
   export type IsNumberShape<T> = T extends NumberShape ? T : never;
   export type IsSetShape<T> = T extends SetShape<Shape> ? T : never;

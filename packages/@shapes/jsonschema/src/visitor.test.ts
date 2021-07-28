@@ -1,16 +1,16 @@
 import 'jest';
 
-import { any, binary, Enum, nothing, number, NumberShape, optional, string, StringShape, Type, union } from '@shapes/core';
+import { any, binary, Enum, nothing, number, NumberShape, optional, string, StringShape, Struct, union } from '@shapes/core';
 import { Maximum, MaxLength, Minimum, MinLength, MultipleOf, Pattern } from '@shapes/core';
 import { array, map, set } from '@shapes/core';
 import { JsonSchema, NumberSchema, OneOf } from '.';
 
 // tslint:disable: member-access
-class Nested extends Type('Nested', {
+class Nested extends Struct('Nested', {
   a: optional(string)
 }) {}
 
-class MyType extends Type('MyType', {
+class MyType extends Struct('MyType', {
   /**
    * Field documentation.
    */

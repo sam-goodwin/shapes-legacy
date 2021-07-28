@@ -5,7 +5,7 @@ import { IsInstance } from './is-instance';
 import { LiteralShape } from './literal';
 import { AnyShape, BinaryShape, BoolShape, IntegerShape, NeverShape, NothingShape, NumberShape, TimestampShape } from './primitive';
 import { Shape } from './shape';
-import { TypeShape} from './type';
+import { StructShape} from './struct';
 import { UnionShape } from './union';
 import { stringHashCode } from './util';
 import { Value } from './value';
@@ -138,7 +138,7 @@ export namespace HashCode {
     public integerShape(_shape: IntegerShape): HashCode<any> {
       return n => n as number;
     }
-    public recordShape(shape: TypeShape<any>): HashCode<any> {
+    public structShape(shape: StructShape<any>): HashCode<any> {
       const fields = Object.entries(shape.Members)
         .map(([name, member]) => ({
           [name]: of((member as any))

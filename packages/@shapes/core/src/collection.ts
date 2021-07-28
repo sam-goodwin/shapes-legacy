@@ -1,5 +1,11 @@
 import { Shape } from './shape';
 
+export type CollectionShapes<T extends Shape = Shape> = 
+  | ArrayShape<T>
+  | SetShape<T>
+  | MapShape<T>
+  ;
+
 /**
  * A Collection of Shapes.
  */

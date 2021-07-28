@@ -1,4 +1,4 @@
-import { array, Description, Enum, integer, map, number, set, string, Type } from '@shapes/core';
+import { array, Description, Enum, integer, map, number, set, string, Struct } from '@shapes/core';
 import { char, double, float, glue, varchar } from '.';
 
 import * as Glue from '.';
@@ -10,11 +10,11 @@ const Direction = Enum('Direction', {
   Down: 'Down'
 } as const);
 
-class Nested extends Type('Nested', {
+class Nested extends Struct('Nested', {
   name: string
 }) {}
 
-class Data extends Type('Data', {
+class Data extends Struct('Data', {
   id: string
     .apply(Description('this is a comment')),
 

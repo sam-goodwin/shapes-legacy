@@ -1,8 +1,8 @@
 # @shapes/hive
 
-Maps a Punchcard Shape Record to its corresponding Hive Schema compatible with AWS Glue.
+Maps a Punchcard Shape Struct to its corresponding Hive Schema compatible with AWS Glue.
 
-# Define a Schema with a Record
+# Define a Schema with a Struct
 
 ```ts
 import { string, integer, number, array, set, map, Description } from '@shapes/core';
@@ -10,12 +10,12 @@ import { string, integer, number, array, set, map, Description } from '@shapes/c
 // Hive-specific types
 import { double, float, char, varchar, Glue } from '@shapes/hive';
 
-// a record to be used within our top-level type (i.e. a nested structure).
-class Nested extends Record({
+// a Struct to be used within our top-level type (i.e. a nested structure).
+class Nested extends Struct({
   name: string
 }) {}
 
-class Data extends Record({
+class Data extends Struct({
   id: string
     .apply(Description('this is a comment')),
 

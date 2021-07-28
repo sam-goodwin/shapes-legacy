@@ -4,9 +4,9 @@ This library maps types in the Punchcard Shape type-system to a JSON Schema.
 
 # Defining Types
 
-First, create a Record using the Shape type-sytem:
+First, create a Struct using the Shape type-sytem:
 ```ts
-class MyType extends Record({
+class MyType extends Struct({
   key: string
     .apply(MinLength(1)),
   count: integer
@@ -18,7 +18,7 @@ class MyType extends Record({
 }) {}
 ```
 
-# Map the record to a JSON schema document
+# Map the Struct to a JSON schema document
 
 ```ts
 const schema = require('@shapes/jsonschema').JsonSchema.of(MyType);

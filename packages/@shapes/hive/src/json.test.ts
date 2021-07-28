@@ -1,8 +1,8 @@
-import { timestamp, Type } from '@shapes/core';
+import { timestamp, Struct } from '@shapes/core';
 
 import * as Glue from '.';
 
-class Data extends Type('Data', {
+class Data extends Struct('Data', {
   timestamp
 }) {}
 

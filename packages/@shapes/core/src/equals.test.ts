@@ -1,5 +1,5 @@
 import 'jest';
-import { array, boolean, Enum, Equals, map, number, string, timestamp, Type, union } from '.';
+import { array, boolean, Enum, Equals, map, number, string, timestamp, Struct, union } from '.';
 
 it('enum', () => {
   const eq = Equals.of(Enum({
@@ -58,7 +58,7 @@ it('map', () => {
 });
 
 it('record', () => {
-  class A extends Type({
+  class A extends Struct({
     key: number
   }) {}
   const eq = Equals.of(A);
@@ -68,7 +68,7 @@ it('record', () => {
 });
 
 it('union', () => {
-  class A extends Type({
+  class A extends Struct({
     key: number
   }) {}
   const eq = Equals.of(union(string, number, A, array(number), map(string)));

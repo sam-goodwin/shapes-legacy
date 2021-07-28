@@ -1,18 +1,18 @@
 import 'jest';
 
-import { array, map, set, bool, Enum, HashSet, Maximum, MaxLength, Minimum, MinLength, MultipleOf, nothing, number, optional, Pattern, string, Type, union } from '@shapes/core';
+import { array, map, set, bool, Enum, HashSet, Maximum, MaxLength, Minimum, MinLength, MultipleOf, nothing, number, optional, Pattern, string, Struct, union } from '@shapes/core';
 
 import { Json } from '.';
 
 // tslint:disable: member-access
 
-class Nested extends Type('Nested', {
+class Nested extends Struct('Nested', {
   /**
    * A docs.
    */
   a: optional(string)
 }) {}
-class MyType extends Type('MyType', {
+class MyType extends Struct('MyType', {
   /**
    * Field documentation.
    */
@@ -100,7 +100,7 @@ test('should write shape to json', () => {
   expect(mapper.write(runtimeRepr)).toEqual(jsonRepr);
 });
 
-class Empty extends Type('Empty', {}) {}
+class Empty extends Struct('Empty', {}) {}
 
 test('should support empty record', () => {
   expect(() => Json.mapper(Empty)).not.toThrow();

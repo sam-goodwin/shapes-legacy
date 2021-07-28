@@ -3,11 +3,11 @@
 'Shape' is the type-system that makes the Punchcard Type-Safe abstraction of AWS possible. It supplements TypeScript with a virtual type-system available at runtime that makes possible all sorts of ORM and DSL use-cases.
 
 # Ecosystem
-* [@shapes/dynamodb](https://github.com/punchcard/shapes/tree/master/packages/%40punchcard/shape-dynamodb) - DSL for working with AWS DynamoDB. Supports type-safe Query, Update and Conditional expressions, and maps between the raw attribute values and the shape definition.
-* [@shapes/hive](https://github.com/punchcard/shapes/tree/master/packages/%40punchcard/shape-hive) - maps Shapes to AWS Glue (Hive) schemas to support declaring Hive/Glue tables with a Record.
-* [@shapes/json](https://github.com/punchcard/shapes/tree/master/packages/%40punchcard/shape-json) - JSON serialization.
-* [@shapes/jsonpath](https://github.com/punchcard/shapes/tree/master/packages/%40punchcard/shape-jsonpath) - Type-safe DSL for constructing JSON path expressions from Shapes.
-* [@shapes/jsonschema](https://github.com/punchcard/shapes/tree/master/packages/%40punchcard/shape-jsonschema) - Maps a Shape/Record to its corresponding JSON schema.
+* [@shapes/dynamodb](../dynamodb) - DSL for working with AWS DynamoDB. Supports type-safe Query, Update and Conditional expressions, and maps between the raw attribute values and the shape definition.
+* [@shapes/hive](../hive) - maps Shapes to AWS Glue (Hive) schemas to support declaring Hive/Glue tables with a Struct.
+* [@shapes/json](../json) - JSON serialization.
+* [@shapes/jsonpath](../jsonpath) - Type-safe DSL for constructing JSON path expressions from Shapes.
+* [@shapes/jsonschema](../jsonschema) - Maps a Shape to its corresponding JSON schema.
 
 # Why do we need a virtual type-system?
 
@@ -54,7 +54,7 @@ Punchcard Shapes is another workaround, except it eliminates the above redundanc
 Types are constructed in the same way as ordinary data in JavaScript!
 
 ```ts
-class MyType extends Record({
+class MyType extends Struct({
   /**
    * In-line documentation goes here.
    */
@@ -62,7 +62,7 @@ class MyType extends Record({
 }) {}
 ```
 
-`MyType` is what we call a "Record". It is constructed by extending the result of a function call (`Record`) which dynamically creates a class containing static references to its type information and a type-safe constructor that accepts and validates the members.
+`MyType` is what we call a "Struct". It is constructed by extending the result of a function call (`Struct`) which dynamically creates a class containing static references to its type information and a type-safe constructor that accepts and validates the members.
 
 ## Type-Safe Constructor
 The constructor takes an object where each key is a member, and its type is known:
@@ -73,7 +73,7 @@ const myType = new MyType({
 ```
 
 ## Static Reflection
-The `MyType` class has a static reference to the record's type information:
+The `MyType` class has a static reference to the Struct's type information:
 ```ts
 MyType.members.items; // ArrayShape<StringShape>
 ```
@@ -84,10 +84,10 @@ java.lang.String.class; // Class<String>
 ```
 
 ## Dynamic Reflection
-That same information is available dynamically on an instance via the `RecordShape.Members` symbol:
+That same information is available dynamically on an instance via the `TypeShape.Members` symbol:
 ```ts
 const myType: MyType = ...;
-myType[RecordShape.Members].items; // ArrayShape<StringShape>;
+myType[TypeShape.Members].items; // ArrayShape<StringShape>;
 ```
 
 This is similar to the `instance.getClass()` method call in Java:
@@ -99,10 +99,10 @@ This is similar to the `instance.getClass()` method call in Java:
 
 What about decorators though?
 
-Decorators in TypeScript can only be declared on top-level declarations, so we can not apply them to the arguments passed in to `Record`:
+Decorators in TypeScript can only be declared on top-level declarations, so we can not apply them to the arguments passed in to `Struct`:
 
 ```ts
-class MyType extends Record({
+class MyType extends Struct({
   @Decorator() // not possible, bummer
   items: array(string)
 }) {}
@@ -111,7 +111,7 @@ class MyType extends Record({
 To use ordinary decorators, you must redundantly declare the member:
 
 ```ts
-class MyType extends Record({
+class MyType extends Struct({
   items: array(string)
 }) {
   @Decorator() // possible
@@ -124,7 +124,7 @@ This is unfortunate, but it is par for the course when compared to the `type-gra
 To eiminate this redundancy, Shapes also provide its own decorator replacement called "Traits". Any Shape can have a trait "applied" to it:
 
 ```ts
-class MyType extends Record({
+class MyType extends Struct({
   items: array(string)
     .apply(Trait())
 }) {}
@@ -135,7 +135,7 @@ Traits take decorators even further, however, as they can also augment the type-
 For example, the minimum value of an integer can be annotated on the type and used in type-level machinery to change behavior:
 
 ```ts
-class MyType extends Record({
+class MyType extends Struct({
   myNumber: integer
     .apply(Minimum(0))
 }) {}
@@ -160,11 +160,11 @@ type ChangeBehavior<T> =
 ```
 
 ## Validation
-Traits are used to annotate records with validation information. Common use-cases include:
+Traits are used to annotate Structs with validation information. Common use-cases include:
 
 ### `Optional` - mark a member as optional, equivalent to `?` in TS.
 ```ts
-class MyType extends Record({
+class MyType extends Struct({
   key: string.apply(Optional),
   // or use short-hand
   shortHand: optional(string)
@@ -178,7 +178,7 @@ const myType = new MyType({}); // still compiles if we don't provide a value for
 
 ### Min/Max numbers
 ```ts
-class MyType extends Record({
+class MyType extends Struct({
   myNumber: number
     .apply(Minimum(0))
     .apply(Maximum(256))
@@ -187,7 +187,7 @@ class MyType extends Record({
 
 ### Min/Max length of a string
 ```ts
-class MyType extends Record({
+class MyType extends Struct({
   myNumber: string
     .apply(MinLength(0))
     .apply(MaxLength(256))
@@ -212,5 +212,5 @@ class MyType extends Record({
 * `set(T)` - a set of items, equivalent to `Set<T>` in TS, but also supports a non-primitive `T`.
 * `map(T)` - a map of string keys to values, equivalent to `{[key: string]: T; }` in TS.
 
-## Record
-* `Record(M)` - a class with named and well-typed members:
+## Struct
+* `Struct(M)` - a class with named and well-typed members:
