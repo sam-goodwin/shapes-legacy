@@ -1,0 +1,54 @@
+{
+  "name": "@shapes/hive",
+  "description": "Apache Hive Schemas from Shapes",
+  "version": "0.1.0",
+  "main": "dist/cjs/index.js",
+  "types": "dist/cjs/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "watch": "tsc -b -w",
+    "cdk": "cdk"
+  },
+  "license": "Apache-2.0",
+  "author": {
+    "name": "Sam Goodwin",
+    "email": "sam@shapes.org"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/punchcard/shapes"
+  },
+  "readme": "README.md",
+  "keywords": [
+    "shape"
+  ],
+  "dependencies": {
+    "typelevel-ts": "^0.4.0"
+  },
+  "devDependencies": {
+    "@shapes/core": "^0.1.0",
+    "@shapes/json": "^0.1.0",
+    "@types/jest": "^26.0.20",
+    "jest": "^26.6.3",
+    "ts-jest": "^26.5.2"
+  },
+  "peerDependencies": {
+    "@shapes/core": "^0.1.0",
+    "@shapes/json": "^0.1.0"
+  },
+  "jest": {
+    "testPathIgnorePatterns": [
+      "/node_modules/"
+    ],
+    "testMatch": [
+      "**/?(*.)+(spec|test).ts?(x)"
+    ],
+    "preset": "ts-jest",
+    "globals": {
+      "ts-jest": {
+        "tsconfig": "tsconfig.json"
+      }
+    }
+  }
+}

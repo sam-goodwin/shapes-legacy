@@ -10,3 +10,4 @@ packages/**/lib
 coverage
 packages/**/cjs
 packages/**/esm
+dist

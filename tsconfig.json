@@ -2,10 +2,22 @@
   "files": [],
   "references": [
     {
-      "path": "./packages/@shapes/graphql/tsconfig.json"
+      "path": "packages/@shapes/core/tsconfig.json"
     },
     {
-      "path": "./packages/@shapes/graphql-apollo-client/tsconfig.json"
+      "path": "./packages/@shapes/dynamodb/tsconfig.json"
+    },
+    {
+      "path": "./packages/@shapes/hive/tsconfig.json"
+    },
+    {
+      "path": "./packages/@shapes/json/tsconfig.json"
+    },
+    {
+      "path": "./packages/@shapes/jsonpath/tsconfig.json"
+    },
+    {
+      "path": "./packages/@shapes/jsonschema/tsconfig.json"
     }
   ]
 }

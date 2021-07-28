@@ -1,7 +1,6 @@
 {
-  "npmClient": "yarn",
+  "$schema": "https://json.schemastore.org/lerna",
+  "npmClient": "npm",
   "packages": ["packages/@shapes/*"],
-  "rejectCycles": "true",
-  "useWorkspaces": true,
-  "version": "independent"
+  "version": "0.1.0"
 }
